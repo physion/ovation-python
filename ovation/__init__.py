@@ -11,6 +11,13 @@ os.environ["CLASSPATH"] = os.path.pathsep.join(CLASSPATH)
 from jnius import autoclass, cast, JavaException
 
 
+JAR_DIRS = {
+    "osx" : "~/Library/Application Support/us.physion.ovation/python",
+    "windows" : "",
+    "linux" : "~/.ovation/python"
+}
+
+
 ### Common references outside the us.physion.ovation namespace
 
 # java.
