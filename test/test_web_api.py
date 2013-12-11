@@ -28,7 +28,7 @@ def should_get_api_key(mock_post):
 def _setup_mock_sessions_post(mock_post):
     expected_key = 'my-api-key'
     mock_post.return_value.status_code = 200
-    mock_post.return_value.json = MagicMock(return_value={'api_key': expected_key})
+    mock_post.return_value.json.return_value = {'api_key': expected_key}
 
     return expected_key
 
@@ -56,7 +56,7 @@ def should_get_jar_info(mock_get, mock_post):
 
     mock_get.return_value.status_code = 200
     expected_result = {'etag': tag, 'url': url}
-    mock_get.return_value.json = MagicMock(return_value =expected_result)
+    mock_get.return_value.json.return_value = expected_result
 
     api = WebApi(sentinel.email, sentinel.password)
     result = api.jar_info()
