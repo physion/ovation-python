@@ -1,8 +1,18 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-
+import os
 from dependencies import copy_dependencies
+
+def is_conda():
+    if 'CONDA_BUILD' in os.environ:
+        return True
+
+    return False
+
+if is_conda():
+    from distutils.core import setup
+else:
+    from setuptools import setup
 
 DESCRIPTION =  """
 Ovation is the powerful data management service engineered specifically for scientists that liberates research through organization of multiple data formats and sources, the ability to link raw data with analysis and the freedom to safely share all of this with colleagues and collaborators.
@@ -17,7 +27,7 @@ JARS = "ovation/jars"
 
 copy_dependencies(dest=JARS)
 
-setup(name='ovation',
+args = dict(name='ovation',
       version=VERSION,
       description='Ovation Python API',
       author='Physion LLC',
@@ -30,14 +40,19 @@ setup(name='ovation',
           "Development Status :: 4 - Beta",
           "Intended Audience :: Science/Research",
           "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-      ]
-)
+      ])
 
-# zip_safe=False,
-# setup_requires=['nose>=1.3.0', 'coverage==3.6'],
-# install_requires=["phyjnius >= 1.2.1",
-#                 "scipy >= 0.12.0",
-#                 "pandas >= 0.11.0",
-#                 "quantities >= 0.10.1",
-#                 ],
-# test_suite='nose.collector',
+
+if not is_conda():
+    args.update(zip_safe=False,
+                setup_requires=['nose>=1.3.0', 'coverage==3.6'],
+                install_requires=["phyjnius >= 1.2.1",
+                                 "scipy >= 0.12.0",
+                                 "pandas >= 0.11.0",
+                                 "quantities >= 0.10.1",
+                                 ],
+                test_suite='nose.collector')
+
+setup(**args)
+
+
