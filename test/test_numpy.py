@@ -152,9 +152,13 @@ def _round_trip_array(arr, experiment, protocol):
 
     m = insert_numeric_measurement(epoch, set([sourceName]), set(['amp']), trace_name, expected)
 
-    sleep(0.5)
+    actual = None
+    while actual is None:
+        try:
+            actual = as_data_frame(m)
+        except:
+            m.refresh();
 
-    actual = as_data_frame(m)
     return (expected, actual)
 
 

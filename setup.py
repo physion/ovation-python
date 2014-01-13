@@ -24,7 +24,7 @@ setup(name='ovation',
       author_email='info@ovation.io',
       url='http://ovation.io',
       long_description=DESCRIPTION,
-      packages=['ovation'],
+      packages=['ovation', 'ovation.api', 'ovation.core', 'ovation.test', 'ovation.test.util'],
       package_data={'ovation' : ["jars/*.jar"]},
       classifiers=[
           "Development Status :: 4 - Beta",
