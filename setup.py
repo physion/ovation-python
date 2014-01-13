@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages
+from distutils.core import setup
 
 from dependencies import copy_dependencies
 
@@ -24,7 +24,7 @@ setup(name='ovation',
       author_email='info@ovation.io',
       url='http://ovation.io',
       long_description=DESCRIPTION,
-      packages=find_packages(exclude=["test.*", "ez_setup", "examples"]),
+      packages=['ovation'],
       package_data={'ovation' : ["jars/*.jar"]},
       zip_safe=False,
       classifiers=[
