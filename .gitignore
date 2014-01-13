@@ -63,3 +63,5 @@ ovation/jars
 nose_coverage.xml
 
 ovation-2.0-beta*
+
+junit-py27.xml
