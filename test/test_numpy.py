@@ -102,9 +102,12 @@ class TestNumPy(TestBase):
 
         assert artifact is not None
 
-        sleep(0.5)
-
-        actual = as_data_frame(ar.getOutputs().get(record_name))
+        actual = None
+        while actual is None:
+            try:
+                actual = as_data_frame(artifact)
+            except:
+                artifact.refresh()
 
         assert_data_frame_equals(expected, actual)
 
@@ -133,9 +136,12 @@ class TestNumPy(TestBase):
 
         assert artifact is not None
 
-        sleep(0.5)
-
-        actual = as_data_frame(ar.getOutputs().get(record_name))
+        actual = None
+        while actual is None:
+            try:
+                actual = as_data_frame(artifact)
+            except:
+                artifact.refresh()
 
         assert_data_frame_equals(expected, actual)
 
