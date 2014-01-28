@@ -144,6 +144,23 @@ class TestNumPy(TestBase):
                 artifact.refresh()
 
         assert_data_frame_equals(expected, actual)
+        
+    @istest
+    def should_allow_dimensionless_sampling_rates(self):
+        arr = np.random.randn(10) * pq.s
+        arr.name = u'name'
+        arr.sampling_rates = [1.0 * pq.dimensionless]
+        arr.labels = ['time']
+        
+        (expected,actual) = _round_trip_array(arr, self.expt, self.protocol)
+
+        assert_data_frame_equals(expected, actual)
+
+        for k in expected.keys():
+            ex = expected[k]
+            v = actual[k]
+
+            assert_equals(tuple(ex.sampling_rates), v.sampling_rates)
 
 
 
