@@ -1,7 +1,7 @@
 import collections
 import numbers
 
-from ovation import Maps, Sets, cast, autoclass, Integer, Double, File
+from ovation import Maps, Sets, cast, autoclass, Integer, Double, File, DateTime, DateTimeZone
 
 
 class Iterator(object):
@@ -29,6 +29,17 @@ class IterableWrapper(object):
 def iterable(java_iterable):
     return IterableWrapper(java_iterable)
 
+
+def to_java_datetime(d):
+    tz = DateTimeZone.forID(d.tzinfo.tzname(d))
+    return DateTime(d.year, 
+                    d.month, 
+                    d.day, 
+                    d.hour, 
+                    d.minute, 
+                    d.second, 
+                    d.microsecond/1000, 
+                    tz)
 
 def to_map(d):
     result = Maps.newHashMap()
