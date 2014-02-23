@@ -32,6 +32,7 @@ TimeUnit = autoclass("java.util.concurrent.TimeUnit")
 # org.joda
 DateTime = autoclass("org.joda.time.DateTime")
 DateTimeZone = autoclass("org.joda.time.DateTimeZone")
+DateTimeFormat = autoclass("org.joda.time.format.DateTimeFormat")
 
 # com.google.common
 Sets = autoclass("com.google.common.collect.Sets")
