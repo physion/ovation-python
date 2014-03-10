@@ -1,7 +1,8 @@
 import collections
 from nose.tools import istest, assert_equals
 
-from ovation import Maps, autoclass
+from ovation import autoclass
+from ovation.core import Maps
 from ovation.conversion import to_map, to_dict
 
 

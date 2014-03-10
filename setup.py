@@ -50,6 +50,7 @@ if not is_conda():
                                  "scipy >= 0.12.0",
                                  "pandas >= 0.11.0",
                                  "quantities >= 0.10.1",
+                                 "requests >= 1.2.3"
                                  ],
                 test_suite='nose.collector')
 

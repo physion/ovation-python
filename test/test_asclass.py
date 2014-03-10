@@ -1,7 +1,7 @@
 from nose.tools import istest, assert_equals
 from ovation.testing import TestBase
 
-from ovation import DateTime
+from ovation.core import DateTime
 from ovation.conversion import asclass
 
 class TestCast(TestBase):

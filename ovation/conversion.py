@@ -1,7 +1,8 @@
 import collections
 import numbers
 
-from ovation import Maps, Sets, cast, autoclass, Integer, Double, File, DateTime, DateTimeZone
+from ovation import cast, autoclass
+from ovation.core import Maps, Sets, Integer, Double, File, DateTime, DateTimeZone
 
 
 class Iterator(object):

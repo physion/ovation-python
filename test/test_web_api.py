@@ -9,7 +9,7 @@ from mock import MagicMock, patch, sentinel, ANY
 @istest
 def should_have_endpoint():
     api = WebApi('username', 'password')
-    assert_equals('https://ovation.io/api/v1', api.api_endpoint())
+    assert_equals('https://ovation.io/api/v1/', api.api_endpoint())
 
 
 @istest
