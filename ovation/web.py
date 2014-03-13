@@ -55,7 +55,6 @@ class WebApi(object):
             auth_data = {'email' : self.__email,
                          'password' : self.__password}
 
-            print(_join(self.base_url, 'sessions'))
             r = requests.post(_join(self.base_url, 'sessions'), data=auth_data)
 
             if r.status_code != _codes.ok:

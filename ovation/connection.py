@@ -6,6 +6,8 @@ from getpass import getpass
 
 from ovation.api import Ovation
 from ovation.core import Logging
+from ovation.jar import JarUpdater
+
 
 def connect(email, password=None, logging=True):
     """Creates a new authenticated DataStoreCoordinator.
@@ -36,8 +38,12 @@ def connect(email, password=None, logging=True):
         pw = getpass("Ovation password: ")
     else:
         pw = password
+
+    updater = JarUpdater(email, password)
+    updater.update_jar()
     
     return Ovation.connect(email, pw)
+
 
 def new_data_context(email, password=None, logging=True):
     """Creates a new authenticated DataContext.
