@@ -21,6 +21,8 @@ def _default_jar_directory(system=platform.system()):
 
 def _download(url, file_name):
     u = urllib2.urlopen(url)
+    meta = u.info()
+    file_size = int(meta.getheaders("Content-Length")[0])
 
     with open(file_name, 'wb') as f:
         file_size_dl = 0
