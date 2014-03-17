@@ -34,9 +34,7 @@ def connect(email, password=None, logging=True):
         pw = password
 
     updater = JarUpdater(email, pw)
-    if updater.update_jar():
-        print("You must restart Python to load the Ovation API")
-        return None
+    updater.update_jar()
 
 
     from ovation.api import Ovation
