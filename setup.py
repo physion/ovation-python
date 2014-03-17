@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-from dependencies import copy_dependencies
 
 def is_conda():
     if 'CONDA_BUILD' in os.environ:
@@ -20,12 +19,9 @@ Ovation is the powerful data management service engineered specifically for scie
 The Ovation Python API wraps the Ovation Java API for use by CPython. Through this Python API, CPython users can access the full functionality of the Ovation ecosystem from within Python. 
 
 Jython users can access the Ovation Java API directly and should *not* use this Python API."""
-    
+
+
 VERSION = "2.1.8"
-
-JARS = "ovation/jars"
-
-copy_dependencies(dest=JARS)
 
 args = dict(name='ovation',
       version=VERSION,
@@ -50,7 +46,8 @@ if not is_conda():
                                  "scipy >= 0.12.0",
                                  "pandas >= 0.11.0",
                                  "quantities >= 0.10.1",
-                                 "requests >= 1.2.3"
+                                 "requests >= 1.2.3",
+                                 "progressbar >= 2.2"
                                  ],
                 test_suite='nose.collector')
 

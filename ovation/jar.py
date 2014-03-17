@@ -3,12 +3,18 @@ Tools for updating the Ovation API Jar
 """
 import json
 
-import sys
 import platform
 import os
 import urllib2
+import logging
+import sys
+import progressbar
+
 from ovation.web import WebApi
 
+
+def jar_directory(system=platform.system()):
+    return _default_jar_directory(system)
 
 def _default_jar_directory(system=platform.system()):
     _default = {
@@ -27,6 +33,9 @@ def _download(url, file_name):
     with open(file_name, 'wb') as f:
         file_size_dl = 0
         block_sz = 8192
+        bar = progressbar.ProgressBar(maxval=100,
+                                        widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
+        bar.start()
         while True:
             buffer = u.read(block_sz)
             if not buffer:
@@ -34,9 +43,9 @@ def _download(url, file_name):
 
             file_size_dl += len(buffer)
             f.write(buffer)
-            status = r"%10d  [%3.2f%%]" % (file_size_dl, file_size_dl * 100. / file_size)
-            status = status + chr(8)*(len(status)+1)
-            print(status)
+            progress = file_size_dl * 100. / file_size
+            bar.update(int(progress))
+        bar.finish()
 
 
 class JarUpdater(object):
@@ -74,8 +83,14 @@ class JarUpdater(object):
             if not os.path.exists(self.jar_directory):
                 os.makedirs(self.jar_directory)
 
+            logging.info("Updating Ovation API")
+            print("Updating Ovation API...")
             self.downloader(info['url'], os.path.join(self.jar_directory, 'ovation.jar'))
             self._write_etag(info)
+
+            return True
+
+        return False
 
 
 

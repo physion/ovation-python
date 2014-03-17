@@ -42,8 +42,6 @@ nosetests.xml
 .pydevproject
 
 
-maven.classpath.txt
-
 wrapper.build.venv/
 
 # IDEA
