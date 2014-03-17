@@ -1,12 +1,9 @@
 """
 Tools for interacting with the ovation.io API
 """
-import json
 import urlparse
-import urllib
 
 import requests
-from requests.exceptions import ConnectionError
 
 PROTOCOL = 'https'
 HOST = 'ovation.io'
@@ -18,7 +15,7 @@ def _api_endpoint(protocol=PROTOCOL, host=HOST, version=API_VERSION):
     '''
     Returns the API endpoint URI.
     '''
-    return '{protocol}://{host}/api/v{version}'.format(protocol=protocol,
+    return '{protocol}://{host}/api/v{version}/'.format(protocol=protocol,
                                                        host=host,
                                                        version=version)
 
@@ -69,7 +66,7 @@ class WebApi(object):
 
     def jar_info(self):
         '''
-        Returns download info for the Java all-in-one JAR download.exceptions
+        Returns download info for the Java all-in-one JAR download.
 
         Raises ConnectionError when offline
         '''

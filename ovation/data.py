@@ -6,8 +6,7 @@ import quantities as pq
 from scipy.io import netcdf
 
 from ovation.conversion import to_java_set
-from ovation.core import NumericDataElements
-from ovation import File, URL
+from ovation.core import NumericDataElements, File
 
 __author__ = 'barry'
 __copyright__= 'Copyright (c) 2013. Physion Consulting. All rights reserved.'

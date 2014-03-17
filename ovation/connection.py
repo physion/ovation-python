@@ -3,9 +3,8 @@ Connection utilities for the Ovation Python API
 """
 
 from getpass import getpass
+from ovation.jar import JarUpdater
 
-from ovation.api import Ovation
-from ovation.core import Logging
 
 def connect(email, password=None, logging=True):
     """Creates a new authenticated DataStoreCoordinator.
@@ -28,16 +27,25 @@ def connect(email, password=None, logging=True):
         A new authenticated DataStoreCoordinator
     
     """
-    
-    if logging:
-        Logging.configureRootLoggerRollingAppender()
-    
+
     if password is None:
         pw = getpass("Ovation password: ")
     else:
         pw = password
+
+    updater = JarUpdater(email, pw)
+    updater.update_jar()
+
+
+    from ovation.api import Ovation
+    from ovation.core import Logging
     
+    if logging:
+        Logging.configureRootLoggerRollingAppender()
+
+    print("Ovation API v{}".format(Ovation.getVersion()))
     return Ovation.connect(email, pw)
+
 
 def new_data_context(email, password=None, logging=True):
     """Creates a new authenticated DataContext.

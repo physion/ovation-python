@@ -7,7 +7,7 @@ from nose.tools import istest, assert_equals, assert_true
 from ovation.conversion import to_map
 from ovation.data import as_data_frame, insert_numeric_measurement, insert_numeric_analysis_artifact
 from ovation.testing import TestBase
-from ovation import DateTime
+from ovation.core import DateTime
 
 
 def assert_data_frame_equals(expected, actual):
