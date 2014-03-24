@@ -26,3 +26,11 @@ Sets = autoclass("com.google.common.collect.Sets")
 Maps = autoclass("com.google.common.collect.Maps")
 Optional = autoclass("com.google.common.base.Optional")
 
+
+def date_time(year, month, day, hour=0, minute=0, second=0, millis=0, zone=None):
+    if zone is None:
+        zone = DateTimeZone.getDefault()
+    else:
+        zone = DateTimeZone.forID(zone)
+    
+    return DateTime(year, month, day, hour, minute, second, millis, zone)

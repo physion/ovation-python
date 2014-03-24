@@ -95,6 +95,7 @@ def to_file_url(path):
 
     return File(path).toURI().toURL()
 
+
 def to_java_set(s):
     result = Sets.newHashSet()
     for item in s:
