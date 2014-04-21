@@ -1,5 +1,3 @@
-from time import sleep
-
 import numpy as np
 import quantities as pq
 from nose.tools import istest, assert_equals, assert_true

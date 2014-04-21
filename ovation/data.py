@@ -5,11 +5,11 @@ import quantities as pq
 
 from scipy.io import netcdf
 
-from ovation.conversion import to_java_set
+from ovation.conversion import to_set
 from ovation.core import NumericDataElements, File
 
 __author__ = 'barry'
-__copyright__= 'Copyright (c) 2013. Physion Consulting. All rights reserved.'
+__copyright__= 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
 def as_data_frame(numeric_data_element):
@@ -112,6 +112,44 @@ def _make_temp_numeric_file(data_frame, name):
     return tmp
 
 
+def _make_temp_csv_file(data_frame, name):
+    with tempfile.NamedTemporaryFile(prefix=name,
+        suffix=".cvs",
+        delete=False) as tmp:
+
+        data_frame.to_csv(tmp)
+
+    return tmp
+
+
+def insert_tabular_measurement(epoch, sources, devices, name, data_frame):
+    """Inserts a Pandas DataFrame as a CSV `Measurement` on the given `Epoch`
+
+    Parameters
+    ----------
+    epoch : us.physion.ovation.domain.Epoch
+    sources : set
+        `Source` names in the `Epoch`
+    devices : set
+        Device names in the `Epoch's` containing experiment
+    name : string
+        `Measurement` name
+    data_frame : DataFrame
+        Pandas DataFrame
+
+    Returns
+    -------
+    measurement : us.physion.ovation.domain.Measurement
+         Numeric `Measurement` instance containing the given data frame
+    """
+
+    tmp = _make_temp_csv_file(data_frame, name)
+    return epoch.insertMeasurement(name,
+                                   to_set(sources),
+                                   to_set(devices),
+                                   File(tmp.name).toURI().toURL(),
+                                   'text/csv')
+
 def insert_numeric_measurement(epoch, sources, devices, name, data_frame):
     """Inserts a `dict` of Quantities (NumPy) arrays as a numeric `Measurement` on the given `Epoch`
 
@@ -136,8 +174,8 @@ def insert_numeric_measurement(epoch, sources, devices, name, data_frame):
     tmp = _make_temp_numeric_file(data_frame, name)
 
     return epoch.insertMeasurement(name,
-                                   to_java_set(sources),
-                                   to_java_set(devices),
+                                   to_set(sources),
+                                   to_set(devices),
                                    File(tmp.name).toURI().toURL(),
                                    NumericDataElements.NUMERIC_MEASUREMENT_CONTENT_TYPE)
 

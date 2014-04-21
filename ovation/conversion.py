@@ -5,34 +5,52 @@ from ovation import cast, autoclass
 from ovation.core import Maps, Sets, Integer, Double, File, DateTime, DateTimeZone
 
 
+def asclass(cls_name, o):
+    if o is None:
+        return o
+
+    if len(cls_name.split('.')) == 1:
+        cls_name = "us.physion.ovation.domain.{}".format(cls_name)
+
+    return cast(autoclass(cls_name), o)
+
 class Iterator(object):
-    def __init__(self, jiterator):
+    def __init__(self, jiterator, as_class=None):
         self.java_iterator = jiterator
+        self.asclass = as_class
 
     def __iter__(self):
         return self
 
     def next(self):
         if (self.java_iterator.hasNext()):
+            if self.asclass:
+                return asclass(self.asclass, self.java_iterator.next())
             return self.java_iterator.next()
 
         raise StopIteration()
 
 
 class IterableWrapper(object):
-    def __init__(self, jiterable):
+    def __init__(self, jiterable, as_class=None):
         self.java_iterable = jiterable
+        self.asclass = as_class
 
     def __iter__(self):
-        return Iterator(self.java_iterable.iterator())
+        return Iterator(self.java_iterable.iterator(), as_class=self.asclass)
 
 
-def iterable(java_iterable):
-    return IterableWrapper(java_iterable)
+def iterable(java_iterable, as_class=None):
+    return IterableWrapper(java_iterable, as_class=as_class)
 
-
-def to_java_datetime(d):
-    tz = DateTimeZone.forID(d.tzinfo.tzname(d))
+def to_list(java_iter, cls=None):
+    if cls:
+        return [asclass(cls, e) for e in iterable(java_iter)]
+    
+    return list(iterable(java_iter))
+    
+def datetime(d):
+    tz = DateTimeZone.forID(d.tzinfo.zone)
     return DateTime(d.year, 
                     d.month, 
                     d.day, 
@@ -41,6 +59,9 @@ def to_java_datetime(d):
                     d.second, 
                     d.microsecond/1000, 
                     tz)
+
+def to_java_datetime(d):
+    return datetime(d)
 
 def to_map(d):
     result = Maps.newHashMap()
@@ -96,7 +117,8 @@ def to_file_url(path):
     return File(path).toURI().toURL()
 
 
-def to_java_set(s):
+
+def to_set(s):
     result = Sets.newHashSet()
     for item in s:
         result.add(box_number(item))
@@ -104,13 +126,8 @@ def to_java_set(s):
     return result
 
 
+def to_java_set(s):
+    return to_set(s)
 
-def asclass(cls_name, o):
-    if o is None:
-        return o
 
-    if len(cls_name.split('.')) == 1:
-        cls_name = "us.physion.ovation.domain.{}".format(cls_name)
-
-    return cast(autoclass(cls_name), o)
 
