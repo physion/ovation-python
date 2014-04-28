@@ -12,6 +12,9 @@ __author__ = 'barry'
 __copyright__= 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
+# TODO as_data_frame (text/csv => pandas data frame)
+
+# TODO this should be as_numeric_data_frame
 def as_data_frame(numeric_data_element):
     """Converts a numeric Ovation numeric `DataElement` to a dictionary of `Quantities` (NumPy) arrays.
     This dictionary can be used to create a Pandas `DataFrame`, though as of Pandas 0.11.0, Quantities' units
