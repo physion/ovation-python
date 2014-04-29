@@ -34,13 +34,6 @@ Add to Path:
 	C:\Program Files\Java\[jre7]\bin\client
 	C:\Program Files\Java\[jre7]\bin\client
 
-### OS X
-
-Install the `ovation` package from [PyPI](http://pypi.python.org):
-
-	pip install ovation
-	
-Note: if you are using Ovation from a Python virtualenv, see the [wiki](https://github.com/physion/ovation-python/wiki/Osx-virtualenv)
 
 ## Usage
 
