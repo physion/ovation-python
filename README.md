@@ -15,23 +15,11 @@ Jython users can access the Ovation Java API directly and should *not* use this 
 * NumPy 1.7+
 * Quantities 0.10+
 
-## Building
-
-To build the python wrapper at the command line:
-
-	mvn clean compile
-
-Build requires:
-
-* Java 1.6 or later
-* Maven 3 or later
-* CPython 2.7 or later
-
 ## Installation
 
-Install the `ovation` package from `PyPI <http://pypi.python.org>`_:
+Install the `ovation` package from [PyPI](http://pypi.python.org):
 
-	easy_install ovation
+	pip install ovation
 
 
 ### Windows
@@ -50,7 +38,7 @@ Add to Path:
 
 Install the `ovation` package from [PyPI](http://pypi.python.org):
 
-	easy_install ovation
+	pip install ovation
 	
 Note: if you are using Ovation from a Python virtualenv, see the [wiki](https://github.com/physion/ovation-python/wiki/Osx-virtualenv)
 
@@ -59,11 +47,11 @@ Note: if you are using Ovation from a Python virtualenv, see the [wiki](https://
 
 ### Connecting to the Ovation database
 
-	>> from ovation import *
-	>> from ovation.connection import connect
-	>> dsc = connect(<ovation.io user email>)
+	>> from ovation.connection import new_data_context
+	>> from ovation.conversion import to_list
+	>> context = new_data_context(<ovation.io user email>)
 	Ovation password: <ovation.io password>
-	>> context = dsc.getContext()
+	>> projects = to_list(context.getProjects())
 	
 
 
