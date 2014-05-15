@@ -14,41 +14,6 @@ def asclass(cls_name, o):
 
     return cast(autoclass(cls_name), o)
 
-class Iterator(object):
-    def __init__(self, jiterator, as_class=None):
-        self.java_iterator = jiterator
-        self.asclass = as_class
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        if (self.java_iterator.hasNext()):
-            if self.asclass:
-                return asclass(self.asclass, self.java_iterator.next())
-            return self.java_iterator.next()
-
-        raise StopIteration()
-
-
-class IterableWrapper(object):
-    def __init__(self, jiterable, as_class=None):
-        self.java_iterable = jiterable
-        self.asclass = as_class
-
-    def __iter__(self):
-        return Iterator(self.java_iterable.iterator(), as_class=self.asclass)
-
-
-def iterable(java_iterable, as_class=None):
-    return IterableWrapper(java_iterable, as_class=as_class)
-
-def to_list(java_iter, cls=None):
-    if cls:
-        return [asclass(cls, e) for e in iterable(java_iter)]
-    
-    return list(iterable(java_iter))
-    
 def datetime(d):
     tz = DateTimeZone.forID(d.tzinfo.zone)
     return DateTime(d.year, 
@@ -83,7 +48,6 @@ def to_dict(m):
         result[k] = m.get(k)
 
     return result
-    #return {key: m.get(key) for key in iterable(m.keySet())}
 
 
 def box_number(item):
