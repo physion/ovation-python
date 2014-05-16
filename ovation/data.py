@@ -2,20 +2,44 @@ from contextlib import contextmanager
 import json
 import tempfile
 import quantities as pq
+import pandas as pd
 
 from scipy.io import netcdf
 
 from ovation.conversion import to_set
 from ovation.core import NumericDataElements, File
 
+CSV_TYPE = 'text/csv'
+
 __author__ = 'barry'
 __copyright__= 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
 # TODO as_data_frame (text/csv => pandas data frame)
+def as_data_frame(tabular_data_element, *args, **kwargs):
+    """Reads a DataElement containing 'text/csv' data as a Pandas DataFrame.
 
-# TODO this should be as_numeric_data_frame
-def as_data_frame(numeric_data_element):
+    Additional arguments are passed to pandas.read_csv.
+
+    Parameters
+    ----------
+    data_element : us.physion.ovation.domain.mixin.DataElement
+        `DataElement` instance containing 'text/csv' data
+
+
+    Returns
+    -------
+    data_frame : pandas.DataFrame
+        DataFrame read by pandas.read_csv
+    """
+
+    if not tabular_data_element.getDataContentType() == CSV_TYPE:
+        raise Exception("Data element content type is not " + CSV_TYPE)
+
+    return pd.read_csv(tabular_data_element.getLocalDataPath().get(), *args, **kwargs)
+
+
+def as_numeric_data_frame(numeric_data_element):
     """Converts a numeric Ovation numeric `DataElement` to a dictionary of `Quantities` (NumPy) arrays.
     This dictionary can be used to create a Pandas `DataFrame`, though as of Pandas 0.11.0, Quantities' units
     information will be lost.
@@ -74,8 +98,8 @@ class NumericMeasurementException(Exception):
         Exception.__init__(self, message)
 
 
-def insert_numeric_analysis_artifact(analysis_record, name, data_frame):
-    """Inserts a `dict` of Quantities (NumPy) arrays as a numeric output on the given `AnalysisRecord`
+def add_numeric_analysis_artifact(analysis_record, name, data_frame):
+    """Adds a `dict` of Quantities (NumPy) arrays as a numeric output on the given `AnalysisRecord`
 
     Parameters
     ----------
@@ -96,6 +120,31 @@ def insert_numeric_analysis_artifact(analysis_record, name, data_frame):
     return analysis_record.addOutput(name,
                                      File(tmp.name).toURI().toURL(),
                                      NumericDataElements.NUMERIC_MEASUREMENT_CONTENT_TYPE)
+
+
+
+def add_tabular_analysis_artifact(analysis_record, name, data_frame):
+    """Adds a Pandas as_data_frame as an output on the given `AnalysisRecord`
+
+    Parameters
+    ----------
+    analysis_record : us.physion.ovation.domain.AnalysisRecord
+    name : string
+        Output name
+    data_frame : DataFrame
+
+
+    Returns
+    -------
+    output : us.physion.ovation.domain.mixin.DataElement
+    """
+
+    tmp = _make_temp_csv_file(data_frame, name)
+
+    return analysis_record.addOutput(name,
+                                     File(tmp.name).toURI().toURL(),
+                                     CSV_TYPE)
+
 
 
 def _make_temp_numeric_file(data_frame, name):
@@ -151,7 +200,7 @@ def insert_tabular_measurement(epoch, sources, devices, name, data_frame):
                                    to_set(sources),
                                    to_set(devices),
                                    File(tmp.name).toURI().toURL(),
-                                   'text/csv')
+                                   CSV_TYPE)
 
 def insert_numeric_measurement(epoch, sources, devices, name, data_frame):
     """Inserts a `dict` of Quantities (NumPy) arrays as a numeric `Measurement` on the given `Epoch`

@@ -3,7 +3,7 @@ import quantities as pq
 from nose.tools import istest, assert_equals, assert_true
 
 from ovation.conversion import to_map
-from ovation.data import as_data_frame, insert_numeric_measurement, insert_numeric_analysis_artifact
+from ovation.data import as_numeric_data_frame, insert_numeric_measurement, add_numeric_analysis_artifact
 from ovation.testing import TestBase
 from ovation.core import DateTime
 
@@ -96,14 +96,14 @@ class TestNumPy(TestBase):
         result_name = 'result'
         expected = {result_name: arr}
         record_name = "record-name"
-        artifact = insert_numeric_analysis_artifact(ar, record_name, expected)
+        artifact = add_numeric_analysis_artifact(ar, record_name, expected)
 
         assert artifact is not None
 
         actual = None
         while actual is None:
             try:
-                actual = as_data_frame(artifact)
+                actual = as_numeric_data_frame(artifact)
             except:
                 artifact.refresh()
 
@@ -130,14 +130,14 @@ class TestNumPy(TestBase):
         expected = {result_name1: arr1,
                     result_name2: arr2}
         record_name = "record-name"
-        artifact = insert_numeric_analysis_artifact(ar, record_name, expected)
+        artifact = add_numeric_analysis_artifact(ar, record_name, expected)
 
         assert artifact is not None
 
         actual = None
         while actual is None:
             try:
-                actual = as_data_frame(artifact)
+                actual = as_numeric_data_frame(artifact)
             except:
                 artifact.refresh()
 
@@ -176,9 +176,9 @@ def _round_trip_array(arr, experiment, protocol):
     actual = None
     while actual is None:
         try:
-            actual = as_data_frame(m)
+            actual = as_numeric_data_frame(m)
         except:
-            m.refresh();
+            m.refresh()
 
     return (expected, actual)
 
