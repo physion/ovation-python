@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 from nose.tools import istest, assert_equals, assert_true
 
+from pandas.util.testing import assert_frame_equal
+
 from ovation.conversion import to_map, to_set, asclass
 from ovation.data import as_numeric_data_frame, insert_numeric_measurement, add_numeric_analysis_artifact, insert_tabular_measurement, as_data_frame, add_tabular_analysis_artifact
 from ovation.testing import TestBase
@@ -42,7 +44,7 @@ class TestTabularData(TestBase):
 
         actual = as_data_frame(m, index_col=0)
 
-        assert_equals(expected, actual)
+        assert_frame_equal(expected, actual)
 
     @istest
     def should_round_trip_pandas_data_frame_artifact(self):
@@ -61,4 +63,6 @@ class TestTabularData(TestBase):
 
         actual = as_data_frame(m, index_col=0)
 
-        assert_equals(expected, actual)
+        assert_frame_equal(expected, actual)
+
+
