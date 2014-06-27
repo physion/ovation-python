@@ -28,7 +28,9 @@ def datapath(data_element):
         File system path of data_element's file
     """
 
-    return None
+    return data_element.getLocalDataPath().get()
+
+
 
 def as_data_frame(tabular_data_element, *args, **kwargs):
     """Reads a DataElement containing 'text/csv' data as a Pandas DataFrame.
