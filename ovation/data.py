@@ -15,7 +15,21 @@ __author__ = 'barry'
 __copyright__= 'Copyright (c) 2014. Physion LLC. All rights reserved.'
 
 
-# TODO as_data_frame (text/csv => pandas data frame)
+def datapath(data_element):
+    """Returns the file system path of the (local) cached copy of a `DataElement`.
+
+    Parameters
+    ----------
+    data_element : us.physion.ovation.domain.mixin.DataElement
+
+    Returns
+    -------
+    path : string
+        File system path of data_element's file
+    """
+
+    return None
+
 def as_data_frame(tabular_data_element, *args, **kwargs):
     """Reads a DataElement containing 'text/csv' data as a Pandas DataFrame.
 
@@ -40,7 +54,7 @@ def as_data_frame(tabular_data_element, *args, **kwargs):
 
 
 def as_numeric_data_frame(numeric_data_element):
-    """Converts a numeric Ovation numeric `DataElement` to a dictionary of `Quantities` (NumPy) arrays.
+    """Converts a numeric Ovation `DataElement` to a dictionary of `Quantities` (NumPy) arrays.
     This dictionary can be used to create a Pandas `DataFrame`, though as of Pandas 0.11.0, Quantities' units
     information will be lost.
 
