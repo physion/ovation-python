@@ -10,10 +10,8 @@ Jython users can access the Ovation Java API directly and should *not* use this 
 
 ## Requirements
 
-* [Java 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-* CPython 2.7+ or 3.3+
-* NumPy 1.7+
-* Quantities 0.10+
+* [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) 1.7+
+* CPython 2.7+
 
 ## Installation
 
@@ -41,10 +39,9 @@ Add to Path:
 ### Connecting to the Ovation database
 
 	>> from ovation.connection import new_data_context
-	>> from ovation.conversion import to_list
 	>> context = new_data_context(<ovation.io user email>)
 	Ovation password: <ovation.io password>
-	>> projects = to_list(context.getProjects())
+	>> projects = list(context.getProjects())
 	
 
 
