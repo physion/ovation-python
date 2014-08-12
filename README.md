@@ -10,7 +10,7 @@ Jython users can access the Ovation Java API directly and should *not* use this 
 
 ## Requirements
 
-* Java 1.6+
+* [Java 1.7+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 * CPython 2.7+ or 3.3+
 * NumPy 1.7+
 * Quantities 0.10+
