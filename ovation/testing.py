@@ -1,4 +1,5 @@
 """Testing utilities for code that runs against an Ovation database"""
+from unittest import TestCase
 
 import uuid
 from contextlib import contextmanager
@@ -61,7 +62,7 @@ def local_stack():
             stack.cleanUp()
 
 
-class TestBase(object):
+class TestBase(TestCase):
     @classmethod
     def setup_class(cls):
         print("Creating local database stack...")
