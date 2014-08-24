@@ -184,7 +184,9 @@ def _make_temp_numeric_file(data_frame, name):
 def _make_temp_csv_file(data_frame, name):
     with tempfile.NamedTemporaryFile(prefix=name,
         suffix=".csv",
-        delete=False) as tmp:
+        delete=False,
+        newline='',
+        mode='w') as tmp:
 
         data_frame.to_csv(tmp)
 
