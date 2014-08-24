@@ -22,5 +22,7 @@ class TestSearch(TestBase):
 
         actual_uris = [e.getURI().toString() for e in actual]
 
-        self.assertItemsEqual(actual_uris, (project.getURI().toString(), experiment.getURI().toString()))
+        self.assertCountEqual(actual_uris, (project.getURI().toString(), experiment.getURI().toString()))
+        for expected in (project.getURI().toString(), experiment.getURI().toString()):
+            self.assertTrue(expected in actual_uris)
 

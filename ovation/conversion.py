@@ -1,5 +1,6 @@
 import collections
 import numbers
+import six
 
 from ovation import cast, autoclass
 from ovation.core import Maps, Sets, Integer, Double, File, DateTime, DateTimeZone
@@ -30,14 +31,14 @@ def to_java_datetime(d):
 
 def to_map(d):
     result = Maps.newHashMap()
-    for (k, v) in d.iteritems():
-        if not isinstance(k, basestring):
-            k = unicode(k)
+    for (k, v) in six.iteritems(d):
+        if not isinstance(k, six.string_types):
+            k = six.u(k)
         if isinstance(v, collections.Mapping):
             nested_value = to_map(v)
             result.put(k, nested_value)
         else:
-            result.put(k, box_number(v))
+            result.put(box_number(k), box_number(v))
 
     return result
 

@@ -1,9 +1,11 @@
 """
 Tools for interacting with the ovation.io API
 """
-import urlparse
+
 
 import requests
+import six.moves.urllib as urllib
+
 
 PROTOCOL = 'https'
 HOST = 'ovation.io'
@@ -20,7 +22,7 @@ def _api_endpoint(protocol=PROTOCOL, host=HOST, version=API_VERSION):
                                                        version=version)
 
 def _join(base, relative_url):
-    return urlparse.urljoin(base, relative_url)
+    return urllib.parse.urljoin(base, relative_url)
 
 class WebApiException(Exception):
     def __init__(self, *args, **kwargs):

@@ -1,9 +1,10 @@
 import collections
+import six
 from nose.tools import istest, assert_equals
 
 from ovation import autoclass
 from ovation.core import Maps
-from ovation.conversion import to_map, to_dict
+from ovation.conversion import to_map, to_dict, box_number
 
 
 @istest
@@ -33,18 +34,18 @@ def to_map_should_convert_flat_dict():
 
 
 def check_dict(d, m):
-    for (k, v) in d.iteritems():
-        if not isinstance(k, basestring):
-            k = unicode(k)
+    for (k, v) in six.iteritems(d):
+        if not isinstance(k, six.string_types):
+            k = six.u(k)
 
         if isinstance(v, collections.Mapping):
             check_dict(v, m.get(k))
         else:
-            if isinstance(v, basestring):
-                actual = unicode(m.get(k))
+            if isinstance(v, six.string_types):
+                actual = six.u(m.get(box_number(k)))
                 assert_equals(v, actual)
             elif isinstance(v, int) or isinstance(v, float):
-                actual = m.get(k)
+                actual = m.get(box_number(k))
                 assert_equals(v, actual)
             else:
                 actual = m.get(k)

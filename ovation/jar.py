@@ -5,10 +5,11 @@ import json
 
 import platform
 import os
-import urllib2
 import logging
 import sys
 import progressbar
+
+import six.moves.urllib as urllib
 
 from ovation.web import WebApi
 
@@ -26,7 +27,7 @@ def _default_jar_directory(system=platform.system()):
     return _default[system]
 
 def _download(url, file_name):
-    u = urllib2.urlopen(url)
+    u = urllib.urlopen(url)
     meta = u.info()
     file_size = int(meta.getheaders("Content-Length")[0])
 

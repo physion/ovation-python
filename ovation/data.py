@@ -3,6 +3,7 @@ import json
 import tempfile
 import quantities as pq
 import pandas as pd
+import six
 
 from scipy.io import netcdf
 
@@ -169,7 +170,7 @@ def _make_temp_numeric_file(data_frame, name):
         suffix=".nc",
         delete=False)
     with _netcdf_file_context(tmp.name, 'w') as ncf:
-        for array_name, arr in data_frame.iteritems():
+        for array_name, arr in six.iteritems(data_frame):
             _create_variable(ncf,
                              array_name,
                              arr,
