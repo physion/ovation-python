@@ -21,10 +21,13 @@ The Ovation Python API wraps the Ovation Java API for use by CPython. Through th
 Jython users can access the Ovation Java API directly and should *not* use this Python API."""
 
 
-VERSION = "2.1.17"
+with open(join('ovation', '__init__.py')) as fd:
+    versionline = [x for x in fd.readlines() if x.startswith('__version__')]
+    version = versionline[0].split("'")[-2]
+
 
 args = dict(name='ovation',
-      version=VERSION,
+      version=version,
       description='Ovation Python API',
       author='Physion LLC',
       author_email='info@ovation.io',
@@ -48,7 +51,7 @@ if not is_conda():
                                  "quantities >= 0.10.1",
                                  "requests >= 1.2.3",
                                  "progressbar >= 2.2",
-                                 "six"
+                                 "six >= 1.7.3"
                                  ],
                 test_suite='nose.collector')
 
