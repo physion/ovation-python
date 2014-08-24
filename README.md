@@ -11,7 +11,7 @@ Jython users can access the Ovation Java API directly and should *not* use this 
 ## Requirements
 
 * [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) 1.7+
-* CPython 2.7+
+* CPython 2.7.x or 3.4+
 
 ## Installation
 

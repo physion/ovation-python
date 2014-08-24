@@ -42,12 +42,13 @@ args = dict(name='ovation',
 if not is_conda():
     args.update(zip_safe=False,
                 setup_requires=['nose>=1.3.0', 'coverage==3.6', 'mock>=1.0.1'],
-                install_requires=["pyjnius >= 1.3.2",
+                install_requires=["pyjnius >= 1.4",
                                  "scipy >= 0.12.0",
                                  "pandas >= 0.11.0",
                                  "quantities >= 0.10.1",
                                  "requests >= 1.2.3",
-                                 "progressbar >= 2.2"
+                                 "progressbar >= 2.2",
+                                 "six"
                                  ],
                 test_suite='nose.collector')
 

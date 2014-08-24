@@ -2,6 +2,8 @@
 from unittest import TestCase
 
 import uuid
+import six
+
 from contextlib import contextmanager
 
 from ovation.api import OvationApiModule
@@ -14,7 +16,7 @@ def __make_local_stack():
 
     testUtils = TestUtils()
     userId = uuid.uuid4()
-    userIdentity = unicode(str(userId) + "@email.com")
+    userIdentity = six.u(str(userId) + "@email.com")
     userPassword = u"password"
 
     databaseName = userIdentity.replace("@", "-").replace(".", "-")

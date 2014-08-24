@@ -1,5 +1,6 @@
 import numpy as np
 import quantities as pq
+import six
 from nose.tools import istest, assert_equals, assert_true
 
 from ovation.conversion import to_map
@@ -9,7 +10,7 @@ from ovation.core import DateTime
 
 
 def assert_data_frame_equals(expected, actual):
-    for (key, expected_array) in expected.iteritems():
+    for (key, expected_array) in six.iteritems(expected):
         actual_array = actual[key]
         assert_true(np.all(expected_array == actual_array))
         assert_equals(expected_array.dimensionality.string, actual_array.dimensionality.string)
