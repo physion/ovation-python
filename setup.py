@@ -50,7 +50,7 @@ if not is_conda():
                                  "pandas >= 0.11.0",
                                  "quantities >= 0.10.1",
                                  "requests >= 1.2.3",
-                                 "progressbar >= 2.2",
+                                 "progressbar3000 >= 2.3",
                                  "six >= 1.7.3"
                                  ],
                 test_suite='nose.collector')
