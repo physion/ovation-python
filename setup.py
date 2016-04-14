@@ -3,10 +3,7 @@
 import os
 
 def is_conda():
-    if 'CONDA_BUILD' in os.environ:
-        return True
-
-    return False
+    return 'CONDA_BUILD' in os.environ
 
 if is_conda():
     from distutils.core import setup
@@ -16,9 +13,8 @@ else:
 DESCRIPTION =  """
 Ovation is the powerful data management service engineered specifically for scientists that liberates research through organization of multiple data formats and sources, the ability to link raw data with analysis and the freedom to safely share all of this with colleagues and collaborators.
 
-The Ovation Python API wraps the Ovation Java API for use by CPython. Through this Python API, CPython users can access the full functionality of the Ovation ecosystem from within Python. 
-
-Jython users can access the Ovation Java API directly and should *not* use this Python API."""
+The Ovation Python API wraps the Ovation Rest API. Through this Python API, Python users can access the full functionality of the Ovation ecosystem.
+"""
 
 
 with open(os.path.join('ovation', '__init__.py')) as fd:
@@ -27,15 +23,14 @@ with open(os.path.join('ovation', '__init__.py')) as fd:
 
 
 args = dict(name='ovation',
-      version=version,
-      description='Ovation Python API',
-      author='Physion LLC',
-      author_email='info@ovation.io',
-      url='http://ovation.io',
-      long_description=DESCRIPTION,
-      packages=['ovation', 'ovation.api', 'ovation.core', 'ovation.test', 'ovation.test.util'],
-      package_data={'ovation' : ["jars/*.jar"]},
-      classifiers=[
+            version=version,
+            description='Ovation Python API',
+            author='Physion LLC',
+            author_email='info@ovation.io',
+            url='https://ovation.io',
+            long_description=DESCRIPTION,
+            packages=['ovation'],
+            classifiers=[
           "Development Status :: 4 - Beta",
           "Intended Audience :: Science/Research",
           "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -44,15 +39,11 @@ args = dict(name='ovation',
 
 if not is_conda():
     args.update(zip_safe=False,
-                setup_requires=['nose>=1.3.0', 'coverage==3.6', 'mock>=1.0.1'],
-                install_requires=["pyjnius >= 1.4",
-                                 "scipy >= 0.12.0",
-                                 "pandas >= 0.11.0",
-                                 "quantities >= 0.10.1",
-                                 "requests >= 1.2.3",
-                                 "progressbar3000 >= 2.3",
-                                 "six >= 1.7.3"
-                                 ],
+                setup_requires=['nose>=1.3.7', 'coverage>=4.0.3'],
+                install_requires=["requests >= 2.9.1",
+                                  "six >= 1.10.0",
+                                  "boto3 >= 1.3.0",
+                                  ],
                 test_suite='nose.collector')
 
 setup(**args)

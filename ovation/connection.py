@@ -2,12 +2,14 @@
 Connection utilities for the Ovation Python API
 """
 
+import requests
+
+from urllib.parse import urljoin
 from getpass import getpass
-from ovation.jar import JarUpdater
 
 
-def connect(email, password=None, logging=True):
-    """Creates a new authenticated DataStoreCoordinator.
+def connect(email, password=None, token_service='https://services.ovation.io/api/v1/sessions', api='https://api.ovation.io'):
+    """Creates a new Session.
     
     Arguments
     ---------
@@ -16,16 +18,12 @@ def connect(email, password=None, logging=True):
     
     password : string, optional
         Ovation.io account passowrd. If ommited, the password will be prompted at the command prompt
-        
-    logging : boolean, optional
-        If true, configures Ovation logging. Logs will be placed in the default application
-        support directory, `~/Library/Application Support/us.physion.ovation/logs` on OS X, etc.
     
     Returns
     -------
-    dsc : ovation.DataStoreCoordinator
-        A new authenticated DataStoreCoordinator
-    
+    session : ovation.connection.Session
+        A new authenticated Session
+
     """
 
     if password is None:
@@ -33,43 +31,84 @@ def connect(email, password=None, logging=True):
     else:
         pw = password
 
-    updater = JarUpdater(email, pw)
-    updater.update_jar()
+    r = requests.post(token_service, data={'email': email, 'password': pw})
+    r.raise_for_status()
+
+    token = r.json()['token']
+    return Session(token, api=api)
 
 
-    from ovation.api import Ovation
-    from ovation.core import Logging
-    
-    if logging:
-        Logging.configureRootLoggerRollingAppender()
+class Session(object):
+    def __init__(self, token, api='https://api.ovation.io'):
 
-    print("Ovation API v{}".format(Ovation.getVersion()))
-    return Ovation.connect(email, pw)
+        self.session = requests.Session()
 
+        self.token = token
+        self.api_base = api
 
-def new_data_context(email, password=None, logging=True):
-    """Creates a new authenticated DataContext.
-    
-    Arguments
-    ---------
-    email : string
-        Ovation.io account email
-    
-    password : string, optional
-        Ovation.io account passowrd. If ommited, the password will be prompted at the command prompt
-        
-    logging : boolean, optional
-        If true, configures Ovation logging. Logs will be placed in the default application
-        support directory, `~/Library/Application Support/us.physion.ovation/logs` on OS X, etc.
-    
-    Returns
-    -------
-    context : ovation.DataContext
-        A new authenticated DataContext
-    
-    """
-    
-    return connect(email, password=password, logging=logging).getContext()
+        class BearerAuth(object):
+            def __init__(self, token):
+                self.token = token
 
+            def __call__(self, r):
+                # modify and return the request
+                r.headers['Authorization'] = 'Bearer {}'.format(self.token)
+                return r
 
+        self.session.auth = BearerAuth(token)
+        self.session.headers = {'content-type': 'application/json'}
 
+    def refresh(self):
+        pass
+
+    def make_url(self, path):
+        return urljoin(self.api_base, path)
+
+    def get(self, path, **kwargs):
+        r = self.session.get(self.make_url(path), **kwargs)
+        r.raise_for_status()
+
+        return r.json()
+
+    def put(self, path, entity=None, **kwargs):
+        """
+
+        :param path: entity path
+        :param entity: entity dictionary
+        :param kwargs: additional args for requests.Session.put
+        :return:
+        """
+
+        if entity is not None:
+            if 'links' in entity:
+                del entity['links']
+            if 'relationships' in entity:
+                del entity['relationships']
+            if 'owner' in entity:
+                del entity['owner']
+
+            data = {entity['type'].lower(): entity}
+        else:
+            data = {}
+
+        kwargs['json'] = data
+        r = self.session.put(self.make_url(path), **kwargs)
+        r.raise_for_status()
+
+        return r.json()
+
+    def post(self, path, data=None, **kwargs):
+        if data is None:
+            data = {}
+
+        kwargs['json'] = data
+        r = self.session.post(self.make_url(path), **kwargs)
+        r.raise_for_status()
+
+        return r.json()
+
+    def delete(self, path, **kwargs):
+        r = self.session.delete(self.make_url(path), **kwargs)
+        r.raise_for_status()
+
+        return r
