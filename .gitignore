@@ -67,3 +67,6 @@ junit-py27.xml
 MANIFEST
 
 *checkpoint.ipynb
+
+.eggs
+
