@@ -11,9 +11,9 @@ else:
     from setuptools import setup
 
 DESCRIPTION =  """
-Ovation is the powerful data management service engineered specifically for scientists that liberates research through organization of multiple data formats and sources, the ability to link raw data with analysis and the freedom to safely share all of this with colleagues and collaborators.
+Ovation is a Scientific Data Layer-as-a-Service, engineered specifically for scientists. Ovation helps researchers manage files and metadata, link raw data with analysis and share all of this with colleagues and collaborators.
 
-The Ovation Python API wraps the Ovation Rest API. Through this Python API, Python users can access the full functionality of the Ovation ecosystem.
+The Ovation Python API wraps the Ovation REST API.
 """
 
 
