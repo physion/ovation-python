@@ -8,7 +8,7 @@ The Ovation Python API wraps the Ovation Rest API. Through this Python API, CPyt
 
 ## Requirements
 
-* Python 3.4+
+* Python 2.7+, 3.4+
 
 ## Installation
 
