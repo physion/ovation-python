@@ -3,12 +3,17 @@ Connection utilities for the Ovation Python API
 """
 
 import requests
+import six
 
-from urllib.parse import urljoin
+if six.PY2:
+    from urlparse import urljoin
+elif six.PY3:
+    from urllib.parse import urljoin
+
 from getpass import getpass
 
 
-def connect(email, password=None, token_service='https://services.ovation.io/api/v1/sessions', api='https://api.ovation.io'):
+def connect(email, password=None, api='https://api.ovation.io'):
     """Creates a new Session.
     
     Arguments
@@ -31,7 +36,7 @@ def connect(email, password=None, token_service='https://services.ovation.io/api
     else:
         pw = password
 
-    r = requests.post(token_service, data={'email': email, 'password': pw})
+    r = requests.post(urljoin(api, 'services/token'), json={'email': email, 'password': pw})
     r.raise_for_status()
 
     token = r.json()['token']
