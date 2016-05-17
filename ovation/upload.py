@@ -32,6 +32,15 @@ class ProgressPercentage(object):
 
 
 def upload_folder(session, parent, directory_path, progress=tqdm):
+    """
+    Recursively uploads a folder to Ovation
+
+    :param session: Session
+    :param parent: Project or Folder root
+    :param directory_path: local path to directory
+    :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
+    """
+
     root_folder = parent
     for root, dirs, files in os.walk(directory_path):
         root_folder = core.create_folder(session, root_folder, os.path.basename(root))
@@ -40,7 +49,21 @@ def upload_folder(session, parent, directory_path, progress=tqdm):
             path = os.path.join(root, f)
             file = core.create_file(session, root_folder, f)
 
-            upload_revision(session, file, path, progress=tqdm)
+            upload_revision(session, file, path, progress=progress)
+
+def upload_file(session, parent, file_path, progress=tqdm):
+    """
+    Upload a file to Ovation
+
+    :param session: Session
+    :param parent: Project or Folder root
+    :param file_path: local path to file
+    :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
+    :return: created File entity dictionary
+    """
+    name = os.path.basename(file_path)
+    file = core.create_file(session, parent, name)
+    return upload_revision(session, file, file_path, progress=progress)
 
 
 def upload_revision(session, parent_file, local_path, progress=tqdm):
@@ -49,7 +72,8 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     the Ovation cloud, and the newly created `Revision` version is set.
     :param session: ovation.connection.Session
     :param parent_file: file entity dictionary or file ID string
-    :param from_path: local path
+    :param local_path: local path
+    :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
     :return: new `Revision` entity dicitonary
     """
 

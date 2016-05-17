@@ -2,24 +2,24 @@
 
 import argparse
 import os
+import ovation.upload as upload
 
 from ovation.session import connect
-from ovation.upload import upload_revision
 
 def main():
     parser = argparse.ArgumentParser(description='Upload files to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
     parser.add_argument('project_id', help='Project UUID')
-    parser.add_argument('paths', nargs='+', help='Path to local files or directories')
+    parser.add_argument('paths', nargs='+', help='Paths to local files or directories')
 
     args = parser.parse_args()
 
-    upload_files(user=args.user,
+    upload_paths(user=args.user,
                  project_id=args.project_id,
                  paths=args.paths)
 
 
-def upload_files(user=None, project_id=None, paths=[]):
+def upload_paths(user=None, project_id=None, paths=[]):
     if user is None:
         user = input('Email: ')
 
@@ -32,16 +32,14 @@ def upload_files(user=None, project_id=None, paths=[]):
         password = None
 
     s = connect(user, password=password)
-    project = s.get(s.entity_path('entities', id=project_id))
-    project_url = project.links.self
+
 
     for p in paths:
-        name = os.path.basename(p)
-        f = s.post(project_url, data={'entities': [{'type': 'File',
-                                                    'attributes': {'name': name}}]})
-
-        print('\tUploading {}'.format(p))
-        upload_revision(s, f, p)
+        print('Uploading {}'.format(p))
+        if os.path.isdir(p):
+            upload.upload_folder(s, project_id, p)
+        else:
+            upload.upload_file(s, project_id, p)
 
 
 if __name__ == '__main__':
