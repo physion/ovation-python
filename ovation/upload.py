@@ -1,11 +1,35 @@
 import mimetypes
 import os.path
+import threading
 
 import boto3
 import six
 
+from tqdm import tqdm
 
-def upload_revision(session, parent_file, local_path):
+class ProgressPercentage(object):
+    def __init__(self, filename, progress=tqdm):
+        self._filename = filename
+        self._seen_so_far = 0
+        self._lock = threading.Lock()
+        self._size = float(os.path.getsize(filename))
+        self._progress = progress(unit='B',
+                                  unit_scale=True,
+                                  total = self._size,
+                                  desc=os.path.basename(filename))
+
+
+    def __call__(self, bytes_amount):
+        # To simplify we'll assume this is hooked up
+        # to a single filename.
+        with self._lock:
+            self._seen_so_far += bytes_amount
+            self._progress.update(self._seen_so_far)
+            if self._seen_so_far >= self._size:
+                self._progress.close()
+
+
+def upload_revision(session, parent_file, local_path, progress=tqdm):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -37,8 +61,13 @@ def upload_revision(session, parent_file, local_path):
 
     file_obj = s3.Object(aws['bucket'], aws['key'])
 
-    file_obj.upload_file(local_path, ExtraArgs={'ContentType': content_type,
-                                                'ServerSideEncryption': 'AES256'})
+    args = {'ContentType': content_type,
+            'ServerSideEncryption': 'AES256'}
+    if progress and os.path.exists(local_path):
+        file_obj.upload_file(local_path, ExtraArgs=args,
+                             Callback=ProgressPercentage(local_path, progress=progress))
+    else:
+        file_obj.upload_file(local_path, ExtraArgs=args)
 
     revision['attributes']['version'] = file_obj.version_id
 
