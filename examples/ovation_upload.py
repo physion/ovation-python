@@ -6,6 +6,7 @@ import ovation.upload as upload
 
 from ovation.session import connect
 
+
 def main():
     parser = argparse.ArgumentParser(description='Upload files to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
@@ -32,7 +33,6 @@ def upload_paths(user=None, project_id=None, paths=[]):
         password = None
 
     s = connect(user, password=password)
-
 
     for p in paths:
         print('Uploading {}'.format(p))
