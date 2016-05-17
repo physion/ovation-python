@@ -1,6 +1,7 @@
 """
 Connection utilities for the Ovation Python API
 """
+import collections
 import os.path
 import requests
 import six
@@ -12,6 +13,11 @@ elif six.PY3:
 
 from getpass import getpass
 
+
+class DataDict(dict):
+    def __init__(self, *args, **kw):
+        super(DataDict, self).__init__(*args, **kw)
+        self.__dict__ = self
 
 def connect(email, password=None, api='https://api.ovation.io'):
     """Creates a new Session.
@@ -41,6 +47,25 @@ def connect(email, password=None, api='https://api.ovation.io'):
 
     token = r.json()['token']
     return Session(token, api=api)
+
+
+def simplify_response(data):
+    # For testing
+    try:
+        if len(data) == 1:
+            result = list(data.values()).pop()
+        else:
+            result = data
+
+
+        if isinstance(result, collections.Mapping):
+            return DataDict(((k,simplify_response(v)) for (k,v) in result.items()))
+        elif isinstance(result, six.string_types):
+            return result
+        elif isinstance(result, collections.Iterable):
+            return [simplify_response(d) for d in result]
+    except:
+        return data
 
 
 class Session(object):
@@ -73,11 +98,23 @@ class Session(object):
 
         return urljoin(self.api_base, path)
 
+    def make_type_path(self, type, id=None):
+        type = type.lower()
+
+        if not type.endswith('s'):
+            type += 's'
+
+        path = '/' + type + '/'
+        if id:
+            path = path + id
+
+        return path
+
     def get(self, path, **kwargs):
         r = self.session.get(self.make_url(path), **kwargs)
         r.raise_for_status()
 
-        return r.json()
+        return simplify_response(r.json())
 
     def put(self, path, entity=None, **kwargs):
         """
@@ -104,7 +141,7 @@ class Session(object):
         r = self.session.put(self.make_url(path), **kwargs)
         r.raise_for_status()
 
-        return r.json()
+        return simplify_response(r.json())
 
     def post(self, path, data=None, **kwargs):
         if data is None:
@@ -114,7 +151,7 @@ class Session(object):
         r = self.session.post(self.make_url(path), **kwargs)
         r.raise_for_status()
 
-        return r.json()
+        return simplify_response(r.json())
 
     def delete(self, path, **kwargs):
         r = self.session.delete(self.make_url(path), **kwargs)

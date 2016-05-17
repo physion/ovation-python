@@ -32,6 +32,46 @@ def should_add_prefix():
 
 
 @istest
+def should_make_type_index_url():
+    s = connection.Session(sentinel.token)
+
+    assert_equal(s.make_type_path('project'), '/projects/')
+
+
+@istest
+def should_make_type_get_url():
+    s = connection.Session(sentinel.token)
+
+    assert_equal(s.make_type_path('project', id='123'), '/projects/123')
+
+
+@istest
+def should_return_single_entry_value():
+    s = connection
+
+
+    entities = ['foo', 'bar']
+    assert_equal(s.simplify_response({'entities': entities}), entities)
+
+
+@istest
+def should_return_datadict():
+    s = connection
+    result = s.simplify_response({'bar': 'baz',
+                                  'foo': sentinel.bar})
+
+    assert_equal(result.bar, 'baz')
+
+
+@istest
+def should_return_multientry_keys_and_values():
+    s = connection
+
+    d = {'entities': sentinel.entities,
+         'others': 'foo'}
+    assert_equal(s.simplify_response(d), d)
+
+@istest
 def should_clean_for_update():
     token = 'my-token'
     api_base = 'https://my.server/'

@@ -35,7 +35,7 @@ def should_create_revision(boto_session):
                                                      bucket=sentinel.bucket,
                                                      key=sentinel.key)}]})
 
-    s.put = Mock(return_value={'revision': sentinel.result})
+    s.put = Mock(return_value=sentinel.result)
 
     # Act
     result = revisions.upload_revision(s, file, path)
