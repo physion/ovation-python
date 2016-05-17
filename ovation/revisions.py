@@ -2,6 +2,10 @@ import boto3
 import os.path
 import mimetypes
 import six
+import requests
+
+from tqdm import tqdm
+from six.moves.urllib_parse import urlsplit
 
 
 def upload_revision(session, parent_file, local_path):
@@ -35,6 +39,7 @@ def upload_revision(session, parent_file, local_path):
     s3 = aws_session.resource('s3')
 
     file_obj = s3.Object(aws['bucket'], aws['key'])
+
     file_obj.upload_file(local_path, ExtraArgs={'ContentType': content_type,
                                                 'ServerSideEncryption': 'AES256'})
 
@@ -43,7 +48,7 @@ def upload_revision(session, parent_file, local_path):
     return session.put('/api/v1/revisions/{}'.format(revision['_id']), entity=revision)
 
 
-def download_revision(session, revision):
+def revision_download_info(session, revision):
     """
     Get temporary download link and ETag for a Revision.
 
@@ -53,7 +58,14 @@ def download_revision(session, revision):
     """
 
     if isinstance(revision, six.string_types):
-        revision = session.get(session.make_type_path('revision', id=revision))
+        e = session.get(session.make_type_path('entities', id=revision))
+        if e.type == 'Revision':
+            revision = e
+        else:
+            revision = session.get(e.links.heads)[0]
+
+    if revision['type'] == 'File':
+        revision = session.get(e.links.heads)[0]
 
     r = session.session.get(revision['attributes']['url'],
                             headers={'accept': 'application/json'},
@@ -61,3 +73,29 @@ def download_revision(session, revision):
     r.raise_for_status()
 
     return r.json()
+
+def download_revision(session, revision, output=None):
+    """
+    Downloads a Revision to the local file system. If output is provided, file is downloaded
+    to the output path. Otherwise, it is downloaded to the current working directory.
+
+    If a File (entity or ID) is provided, the HEAD revision is downloaded.
+
+    :param session: ovation.connection.Session
+    :param revision: revision entity dictionary or ID string, or file entity dictionary or ID string
+    :param output: path to folder to save downloaded revision
+    :return: file path
+    """
+
+    url = revision_download_info(session, revision)['url']
+    response = requests.get(url, stream=True)
+
+    name = os.path.basename(urlsplit(url).path)
+    if output:
+        dest = os.path.join(output, name)
+    else:
+        dest = name
+
+    with open(dest, "wb") as f:
+        for data in tqdm(response.iter_content()):
+            f.write(data)

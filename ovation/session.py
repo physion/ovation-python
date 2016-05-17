@@ -29,7 +29,7 @@ def connect(email, password=None, api='https://api.ovation.io'):
     
     Returns
     -------
-    session : ovation.connection.Session
+    session : ovation.session.Session
         A new authenticated Session
 
     """

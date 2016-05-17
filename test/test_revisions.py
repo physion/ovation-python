@@ -1,5 +1,5 @@
 import copy
-import ovation.connection
+import ovation.session
 
 import ovation.revisions as revisions
 
@@ -16,7 +16,7 @@ def should_create_revision(boto_session):
            'type': 'Revision',
            'attributes': {'url': sentinel.url}}
 
-    s = Mock(spec=ovation.connection.Session)
+    s = Mock(spec=ovation.session.Session)
 
     aws_session = Mock()
     s3 = Mock()
@@ -63,16 +63,17 @@ def should_create_revision(boto_session):
 
 @istest
 def should_get_download_info():
-    revision = {'attributes': {'url': sentinel.url}}
+    revision = {'type': 'Revision',
+                'attributes': {'url': sentinel.url}}
 
-    s = Mock(spec=ovation.connection.Session)
+    s = Mock(spec=ovation.session.Session)
     s.session = Mock()
     response = Mock()
     response.json = Mock(return_value=sentinel.result)
     s.session.get = Mock(return_value=response)
     s.token = sentinel.token
 
-    result = revisions.download_revision(s, revision)
+    result = revisions.revision_download_info(s, revision)
 
     assert_equal(result, sentinel.result)
     s.session.get.assert_called_with(sentinel.url,

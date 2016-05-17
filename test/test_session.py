@@ -1,7 +1,7 @@
 from nose.tools import istest, assert_equal
 from six.moves.urllib_parse import urljoin
 from unittest.mock import Mock, sentinel
-import ovation.connection as connection
+import ovation.session as connection
 
 
 @istest
