@@ -32,7 +32,7 @@ def upload_files(user=None, project_id=None, paths=[]):
         password = None
 
     s = connect(user, password=password)
-    project = s.get(s.make_type_path('entities', id=project_id))
+    project = s.get(s.entity_path('entities', id=project_id))
     project_url = project.links.self
 
     for p in paths:
