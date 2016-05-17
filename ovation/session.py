@@ -47,7 +47,12 @@ def connect(email, password=None, api='https://api.ovation.io'):
 
 
 def simplify_response(data):
-    # For testing
+    """
+    Simplifies the response from Ovation REST API for easier use in Python
+
+    :param data: response data
+    :return: Pythonified response
+    """
     try:
         if len(data) == 1:
             result = list(six.itervalues(data)).pop()
