@@ -1,5 +1,5 @@
 from nose.tools import istest, assert_equal
-import urllib.parse
+from six.moves.urllib_parse import urljoin
 from unittest.mock import Mock, sentinel
 import ovation.connection as connection
 
@@ -19,7 +19,7 @@ def should_set_api_base():
     s = connection.Session(token, api=api_base)
 
     path = '/api/v1/some/path'
-    assert_equal(s.make_url(path), urllib.parse.urljoin(api_base, path))
+    assert_equal(s.make_url(path), urljoin(api_base, path))
 
 @istest
 def should_add_prefix():
@@ -28,7 +28,7 @@ def should_add_prefix():
     s = connection.Session(token, api=api_base)
 
     path = '/some/path'
-    assert_equal(s.make_url(path), urllib.parse.urljoin(api_base, '/api/v1' + path))
+    assert_equal(s.make_url(path), urljoin(api_base, '/api/v1' + path))
 
 
 @istest
@@ -96,7 +96,7 @@ def should_clean_for_update():
 
     r = s.put(path, entity=entity)
     assert_equal(r, sentinel.resp)
-    s.session.put.assert_called_with(urllib.parse.urljoin(api_base, path),
+    s.session.put.assert_called_with(urljoin(api_base, path),
                                      json={'entity': expected})
 
 @istest

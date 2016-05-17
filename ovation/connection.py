@@ -6,10 +6,7 @@ import os.path
 import requests
 import six
 
-if six.PY2:
-    from urlparse import urljoin
-elif six.PY3:
-    from urllib.parse import urljoin
+from six.moves.urllib_parse import urljoin
 
 from getpass import getpass
 
@@ -53,13 +50,13 @@ def simplify_response(data):
     # For testing
     try:
         if len(data) == 1:
-            result = list(data.values()).pop()
+            result = list(six.itervalues(data)).pop()
         else:
             result = data
 
 
         if isinstance(result, collections.Mapping):
-            return DataDict(((k,simplify_response(v)) for (k,v) in result.items()))
+            return DataDict(((k,simplify_response(v)) for (k,v) in six.iteritems(result)))
         elif isinstance(result, six.string_types):
             return result
         elif isinstance(result, collections.Iterable):
