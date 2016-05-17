@@ -118,13 +118,13 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
 def main():
     parser = argparse.ArgumentParser(description='Upload files to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
-    parser.add_argument('project_id', help='Project UUID')
+    parser.add_argument('parent_id', help='Project or Folder UUID')
     parser.add_argument('paths', nargs='+', help='Paths to local files or directories')
 
     args = parser.parse_args()
 
     upload_paths(user=args.user,
-                 project_id=args.project_id,
+                 project_id=args.parent_id,
                  paths=args.paths)
 
 
