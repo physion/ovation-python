@@ -2,9 +2,11 @@ import os.path
 
 import requests
 import six
+import argparse
 
 from tqdm import tqdm
 from six.moves.urllib_parse import urlsplit
+from ovation.session import connect
 
 
 def revision_download_info(session, revision):
@@ -20,11 +22,16 @@ def revision_download_info(session, revision):
         e = session.get(session.entity_path('entities', id=revision))
         if e.type == 'Revision':
             revision = e
-        else:
+        elif e.type == 'File':
             revision = session.get(e.links.heads)[0]
+        else:
+            raise Exception("Whoops! {} is not a File or Revision".format(revision))
 
     if revision['type'] == 'File':
         revision = session.get(e.links.heads)[0]
+
+    if not revision['type'] == 'Revision':
+        raise Exception("Whoops! {} is not a File or Revision".format(revision['_id']))
 
     r = session.session.get(revision['attributes']['url'],
                             headers={'accept': 'application/json'},
@@ -67,3 +74,37 @@ def download_revision(session, revision, output=None, progress=tqdm):
         else:
             for data in response.iter_content():
                 f.write(data)
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Download files from Ovation')
+    parser.add_argument('-u', '--user', help='Ovation user email')
+    parser.add_argument('entity_id', help='File or Revision UUID')
+    parser.add_argument('-o', '--output', help='Output directory')
+
+    args = parser.parse_args()
+
+    download_main(user=args.user,
+             entity_id=args.entity_id,
+             output=args.output)
+
+
+def download_main(user=None, entity_id=None, output=None):
+    if user is None:
+        user = input('Email: ')
+
+    if user is None:
+        return
+
+    if 'OVATION_PASSWORD' in os.environ:
+        password = os.environ['OVATION_PASSWORD']
+    else:
+        password = None
+
+    s = connect(user, password=password)
+
+    download_revision(s, entity_id, output=output)
+
+
+if __name__ == '__main__':
+    main()
