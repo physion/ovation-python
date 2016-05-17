@@ -1,5 +1,5 @@
 import six
-
+from ovation.session import simplify_response
 
 def create_file(session, parent, name):
     """
@@ -17,8 +17,10 @@ def create_file(session, parent, name):
 def _create_contents(session, entity_type, parent, name):
     if isinstance(parent, six.string_types):
         parent = session.get(session.entity_path('entities', id=parent))
-    return session.post(parent.links['self'], data={'entities': [{'type': entity_type,
+
+    result = session.post(parent.links['self'], data={'entities': [{'type': entity_type,
                                                                   'attributes': {'name': name}}]})
+    return simplify_response(result['entities'][0])
 
 
 def create_folder(session, parent, name):

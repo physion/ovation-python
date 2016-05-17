@@ -5,7 +5,10 @@ import threading
 import boto3
 import six
 
+import ovation.core as core
+
 from tqdm import tqdm
+
 
 class ProgressPercentage(object):
     def __init__(self, filename, progress=tqdm):
@@ -15,9 +18,8 @@ class ProgressPercentage(object):
         self._size = float(os.path.getsize(filename))
         self._progress = progress(unit='B',
                                   unit_scale=True,
-                                  total = self._size,
+                                  total=self._size,
                                   desc=os.path.basename(filename))
-
 
     def __call__(self, bytes_amount):
         # To simplify we'll assume this is hooked up
@@ -27,6 +29,18 @@ class ProgressPercentage(object):
             self._progress.update(self._seen_so_far)
             if self._seen_so_far >= self._size:
                 self._progress.close()
+
+
+def upload_folder(session, parent, directory_path, progress=tqdm):
+    root_folder = parent
+    for root, dirs, files in os.walk(directory_path):
+        root_folder = core.create_folder(session, root_folder, os.path.basename(root))
+
+        for f in files:
+            path = os.path.join(root, f)
+            file = core.create_file(session, root_folder, f)
+
+            upload_revision(session, file, path, progress=tqdm)
 
 
 def upload_revision(session, parent_file, local_path, progress=tqdm):
@@ -72,5 +86,3 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     revision['attributes']['version'] = file_obj.version_id
 
     return session.put('/api/v1/revisions/{}'.format(revision['_id']), entity=revision)
-
-

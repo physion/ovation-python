@@ -14,8 +14,8 @@ def should_create_file():
                                            '_id': make_uuid(),
                                            'links': session.DataDict({'self': sentinel.parent_self})})]
     s.post = Mock()
-    file = {'type': 'File',
-            '_id': make_uuid()}
+    file = {'entities': [{'type': 'File',
+                          '_id': make_uuid()}]}
     s.post.return_value = file
     expected_name = 'file name'
 
@@ -32,10 +32,12 @@ def should_create_folder():
                                            '_id': make_uuid(),
                                            'links': session.DataDict({'self': sentinel.parent_self})})]
     s.post = Mock()
-    file = {'type': 'Folder',
-            '_id': make_uuid()}
-    s.post.return_value = file
+    folder = {'entities': [{'type': 'Folder',
+            '_id': make_uuid()}]}
+
+    s.post.return_value = folder
     expected_name = 'folder name'
+
 
     core.create_folder(s, make_uuid(), expected_name)
 
