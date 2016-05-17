@@ -1,7 +1,7 @@
 """
 Connection utilities for the Ovation Python API
 """
-
+import os.path
 import requests
 import six
 
@@ -44,12 +44,13 @@ def connect(email, password=None, api='https://api.ovation.io'):
 
 
 class Session(object):
-    def __init__(self, token, api='https://api.ovation.io'):
+    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1'):
 
         self.session = requests.Session()
 
         self.token = token
         self.api_base = api
+        self.prefix = prefix
 
         class BearerAuth(object):
             def __init__(self, token):
@@ -67,6 +68,9 @@ class Session(object):
         pass
 
     def make_url(self, path):
+        if not path.startswith(self.prefix):
+            path = os.path.normpath(self.prefix + path)
+
         return urljoin(self.api_base, path)
 
     def get(self, path, **kwargs):

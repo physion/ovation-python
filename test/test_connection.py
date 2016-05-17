@@ -18,15 +18,24 @@ def should_set_api_base():
     api_base = 'https://my.server/'
     s = connection.Session(token, api=api_base)
 
-    path = '/some/path'
+    path = '/api/v1/some/path'
     assert_equal(s.make_url(path), urllib.parse.urljoin(api_base, path))
+
+@istest
+def should_add_prefix():
+    token = 'my-token'
+    api_base = 'https://my.server/'
+    s = connection.Session(token, api=api_base)
+
+    path = '/some/path'
+    assert_equal(s.make_url(path), urllib.parse.urljoin(api_base, '/api/v1' + path))
 
 
 @istest
 def should_clean_for_update():
     token = 'my-token'
     api_base = 'https://my.server/'
-    path = '/api/updates/1'
+    path = '/api/v1/updates/1'
 
     response = Mock()
     response.raise_for_status = Mock(return_value=None)
