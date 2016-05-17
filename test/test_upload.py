@@ -1,10 +1,10 @@
 import copy
-import ovation.session
-
-import ovation.revisions as revisions
-
-from nose.tools import istest, assert_equal, assert_dict_equal
 from unittest.mock import Mock, sentinel, patch
+
+from nose.tools import istest, assert_equal
+
+import ovation.session
+import ovation.upload as revisions
 
 @istest
 @patch('boto3.Session')
@@ -61,21 +61,3 @@ def should_create_revision(boto_session):
 
 
 
-@istest
-def should_get_download_info():
-    revision = {'type': 'Revision',
-                'attributes': {'url': sentinel.url}}
-
-    s = Mock(spec=ovation.session.Session)
-    s.session = Mock()
-    response = Mock()
-    response.json = Mock(return_value=sentinel.result)
-    s.session.get = Mock(return_value=response)
-    s.token = sentinel.token
-
-    result = revisions.revision_download_info(s, revision)
-
-    assert_equal(result, sentinel.result)
-    s.session.get.assert_called_with(sentinel.url,
-                                     headers={'accept': 'application/json'},
-                                     params={'token': sentinel.token})

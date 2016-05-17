@@ -4,7 +4,7 @@ import argparse
 import os
 
 from ovation.session import connect
-from ovation.revisions import upload_revision
+from ovation.upload import upload_revision
 
 def main():
     parser = argparse.ArgumentParser(description='Upload files to Ovation')
