@@ -16,6 +16,7 @@ class DataDict(dict):
         super(DataDict, self).__init__(*args, **kw)
         self.__dict__ = self
 
+
 def connect(email, password=None, api='https://api.ovation.io'):
     """Creates a new Session.
     
@@ -40,7 +41,16 @@ def connect(email, password=None, api='https://api.ovation.io'):
         pw = password
 
     r = requests.post(urljoin(api, 'services/token'), json={'email': email, 'password': pw})
-    r.raise_for_status()
+    if r.status_code != requests.codes.ok:
+        messages = {401: "Email or password incorrect. Please check your account credentials and try again. "
+                         "Please email support@ovation.io if you need assistance.",
+                    500: "Unable to connect due to a server error. Our engineering team has been notified. "
+                         "Please email support@ovation.io if you need assistance."}
+        if r.status_code in messages.keys():
+            print(messages[r.status_code])
+            return
+        else:
+            r.raise_for_status()
 
     token = r.json()['token']
     return Session(token, api=api)
