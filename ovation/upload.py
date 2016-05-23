@@ -46,7 +46,11 @@ def upload_folder(session, parent, directory_path, progress=tqdm):
 
     root_folder = parent
     for root, dirs, files in os.walk(directory_path):
-        root_folder = core.create_folder(session, root_folder, os.path.basename(root))
+        root_name = os.path.basename(root)
+        if len(root_name) == 0:
+            root_name = os.path.basename(os.path.dirname(root))
+
+        root_folder = core.create_folder(session, root_folder, root_name)
 
         for f in files:
             path = os.path.join(root, f)
