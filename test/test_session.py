@@ -72,6 +72,58 @@ def should_return_multientry_keys_and_values():
     assert_equal(s.simplify_response(d), d)
 
 @istest
+def should_simplify_tags_response():
+    s = connection
+    d = {
+        "tags": [
+            {
+                "_id": "b1a268af-3bf1-4a13-a530-68e9cc4b9367",
+                "user": "5162ef4f-8c57-4c2c-8e35-2a3f4f114275",
+                "entity": "f2bfa3da-7eae-45c4-80a5-9e9a3588a237",
+                "annotation_type": "tags",
+                "annotation": {
+                    "tag": "mytag"
+                },
+                "type": "Annotation",
+                "links": {
+                    "_collaboration_roots": [
+                        "f2bfa3da-7eae-45c4-80a5-9e9a3588a237"
+                    ]
+                },
+                "permissions": {
+                    "update": True,
+                    "delete": True
+                }
+            }
+        ]
+    }
+
+    expected = [
+            {
+                "_id": "b1a268af-3bf1-4a13-a530-68e9cc4b9367",
+                "user": "5162ef4f-8c57-4c2c-8e35-2a3f4f114275",
+                "entity": "f2bfa3da-7eae-45c4-80a5-9e9a3588a237",
+                "annotation_type": "tags",
+                "annotation": {
+                    "tag": "mytag"
+                },
+                "type": "Annotation",
+                "links": {
+                    "_collaboration_roots": [
+                        "f2bfa3da-7eae-45c4-80a5-9e9a3588a237"
+                    ]
+                },
+                "permissions": {
+                    "update": True,
+                    "delete": True
+                }
+            }
+        ]
+
+    assert_equal(s.simplify_response(d), expected)
+
+
+@istest
 def should_clean_for_update():
     token = 'my-token'
     api_base = 'https://my.server/'

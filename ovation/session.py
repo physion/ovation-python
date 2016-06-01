@@ -71,6 +71,9 @@ def simplify_response(data):
 
 
         if isinstance(result, collections.Mapping):
+            if 'type' in result and result['type'] == 'Annotation':
+                return DataDict(result)
+
             return DataDict(((k,simplify_response(v)) for (k,v) in six.iteritems(result)))
         elif isinstance(result, six.string_types):
             return result
