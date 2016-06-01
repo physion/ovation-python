@@ -1,5 +1,6 @@
 # Ovation Python API
 
+[ ![Codeship Status for physion/ovation-python](https://codeship.com/projects/4349c120-e3e2-0133-8c41-5e6dd4ce3e38/status?branch=master)](https://codeship.com/projects/146183)
 
 Ovation is the powerful data management service engineered specifically for scientists that liberates research through organization of multiple data formats and sources, the ability to link raw data with analysis and the freedom to safely share all of this with colleagues and collaborators.
 
