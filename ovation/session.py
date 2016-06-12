@@ -131,7 +131,7 @@ class Session(object):
         return urljoin(self.api_base, path)
 
     @staticmethod
-    def entity_path(type, id=None):
+    def entity_path(type='entities', id=None):
         type = type.lower()
 
         if not type.endswith('s'):
