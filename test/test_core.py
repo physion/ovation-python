@@ -47,3 +47,56 @@ def should_create_folder():
 
 def make_uuid():
     return str(uuid.uuid4())
+
+
+@istest
+def should_trash_entity_by_id():
+    s = Mock(spec=session.Session)
+
+    s.delete.return_value = sentinel.deleted
+    s.entity_path.return_value = sentinel.path
+
+    id = 'entity-id'
+    r = core.delete_entity(s, id)
+
+    s.delete.assert_called_once_with(sentinel.path)
+
+@istest
+def should_trash_entity():
+    s = Mock(spec=session.Session)
+
+    s.delete.return_value = sentinel.deleted
+    s.entity_path.return_value = sentinel.path
+
+    id = 'entity-id'
+    r = core.delete_entity(s, {"_id": id})
+
+    s.delete.assert_called_once_with(sentinel.path)
+
+
+@istest
+def should_undelete_entity():
+    entity_id = make_uuid()
+
+    s = Mock(spec=session.Session)
+    s.get.return_value = session.DataDict({'_id': entity_id,
+                                           'trash_info': sentinel.trash_info})
+    s.put.return_value = session.DataDict({'_id': entity_id})
+    s.entity_path.return_value = sentinel.path
+
+    core.undelete_entities(s, entity_id)
+
+    s.get.assert_called_once_with(sentinel.path, params={'include-trashed': True})
+    s.put.assert_called_once_with(s, s.put.return_value)
+
+
+
+@istest
+def should_get_entity():
+    s = Mock(spec=session.Session)
+    s.get.return_value = sentinel.result
+    s.entity_path.return_value = sentinel.path
+
+    core.get_entity(s, sentinel.id)
+
+    s.get.assert_called_once_with(sentinel.path, params={"include-trashed": False})

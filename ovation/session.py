@@ -84,8 +84,20 @@ def simplify_response(data):
 
 
 class Session(object):
-    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1'):
+    """
+    Represents an authenticated session.
 
+    `Session` wraps a `requests.Session` and provides methods for convenient creation of Ovation API paths and URLs.
+    All responses are transformed via `simplify_response` to make interactive use more convenient.
+    """
+    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1'):
+        """
+        Creates a new Session
+        :param token: Ovation API token
+        :param api: API endpoint URL (default https://api.ovation.io)
+        :param prefix: API namespace prefix (default '/api/v1')
+        :return: Session object
+        """
         self.session = requests.Session()
 
         self.token = token
@@ -108,13 +120,18 @@ class Session(object):
         pass
 
     def make_url(self, path):
+        """
+        Creates a full URL by combining the API host, prefix and the provided path
+        :param path: path, e.g. /projects/1
+        :return: full URL, e.g. https://api.ovation.io/api/v1/projects/1
+        """
         if not path.startswith(self.prefix):
             path = os.path.normpath(self.prefix + path)
 
         return urljoin(self.api_base, path)
 
     @staticmethod
-    def entity_path(type, id=None):
+    def entity_path(type='entities', id=None):
         type = type.lower()
 
         if not type.endswith('s'):
