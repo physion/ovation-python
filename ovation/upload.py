@@ -116,7 +116,7 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
 
     revision['attributes']['version'] = file_obj.version_id
 
-    return session.put('/api/v1/revisions/{}'.format(revision['_id']), entity=revision)
+    return session.put(session.entity_path(type='revisions', id=revision['_id']), entity=revision)
 
 
 def main():
