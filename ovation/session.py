@@ -166,7 +166,10 @@ class Session(object):
             if 'owner' in entity:
                 del entity['owner']
 
-            data = {entity['type'].lower(): entity}
+            if 'entities' in path:
+                data = {"entity": entity}
+            else:
+                data = {entity['type'].lower(): entity}
         else:
             data = {}
 
