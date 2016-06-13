@@ -82,12 +82,12 @@ def should_undelete_entity():
     s.get.return_value = session.DataDict({'_id': entity_id,
                                            'trash_info': sentinel.trash_info})
     s.put.return_value = session.DataDict({'_id': entity_id})
-    s.entity_path.return_value = sentinel.path
+    s.entity_path.return_value = "/api/v1/entities/{}".format(entity_id)
 
-    core.undelete_entities(s, entity_id)
+    core.undelete_entity(s, entity_id)
 
-    s.get.assert_called_once_with(sentinel.path, params={'include-trashed': True})
-    s.put.assert_called_once_with(s, s.put.return_value)
+    s.get.assert_called_once_with(s.entity_path.return_value, params={'trash': "true"})
+    s.put.assert_called_once_with(s.entity_path.return_value + "/restore", s.get.return_value)
 
 
 
@@ -99,4 +99,4 @@ def should_get_entity():
 
     core.get_entity(s, sentinel.id)
 
-    s.get.assert_called_once_with(sentinel.path, params={"include-trashed": False})
+    s.get.assert_called_once_with(sentinel.path, params={'trash': "false"})
