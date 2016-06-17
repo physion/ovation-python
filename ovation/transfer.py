@@ -70,7 +70,7 @@ def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_acce
                 parent_folder_id = folder_map[parent_folder_path]
 
             # create revision
-            create_file(session=session, parent_folder_id=parent_folder_id, s3_file=s3_file, source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            create_file(session=session, file_key=file_path, file_name=current_file, parent_folder_id=parent_folder_id, source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
 
 def find_parent_path(current_path, current_entity_name):
     """
@@ -80,7 +80,7 @@ def find_parent_path(current_path, current_entity_name):
     num_chars_to_remove = len(current_entity_name) * -1
     return current_path[:num_chars_to_remove]
 
-def create_file(session, parent_folder_id, s3_file, source_bucket, destination_bucket, aws_access_key_id, aws_secret_access_key):
+def create_file(session, parent_folder_id, file_key, file_name, source_bucket, destination_bucket, aws_access_key_id, aws_secret_access_key):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -90,7 +90,6 @@ def create_file(session, parent_folder_id, s3_file, source_bucket, destination_b
     :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
     :return: new `Revision` entity dicitonary
     """
-    file_name = s3_file.key
 
     content_type = mimetypes.guess_type(file_name)[0]
     if content_type is None:
@@ -112,7 +111,7 @@ def create_file(session, parent_folder_id, s3_file, source_bucket, destination_b
 
     destination_file = s3.Object(destination_bucket, aws['key'])
 
-    copy_source = "{0}/{1}".format(source_bucket, file_name)
+    copy_source = "{0}/{1}".format(source_bucket, file_key)
     #client.copy_object(Bucket=destination_bucket, CopySource=copy_source, Key=file_name)
 
     response = destination_file.copy_from(CopySource=copy_source)
@@ -124,14 +123,17 @@ def create_file(session, parent_folder_id, s3_file, source_bucket, destination_b
     return revision_response
 
 def main():
-    parser = argparse.ArgumentParser(description='Transfer files from one bucket to another')
+    ovation_user_email = input('Ovation email: ')
+    session = connect(ovation_user_email)
 
-    args = parser.parse_args()
+    source_s3_bucket = input('Source S3 bucket: ')
+    aws_access_key_id = input('AWS Key ID: ')
+    aws_secret_access_key = input('AWS Secret Key: ')
 
+    project_id = input('Destination Ovation project id: ')
+    destination_s3_bucket='users.ovation.io'
 
-    upload_paths(user=args.user,
-                 project_id=args.parent_id,
-                 paths=args.paths)
+    copy_bucket_contents(session, project_id=project_id, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, source_s3_bucket=source_s3_bucket, destination_s3_bucket=destination_s3_bucket)
 
 
 if __name__ == '__main__':
