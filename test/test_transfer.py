@@ -44,14 +44,14 @@ def should_create_file(create_file, boto_session, guess_content_type):
     aws_response = {'VersionId': sentinel.version_id}
     file_obj.copy_from.return_value = aws_response
 
-    assert_equal(transfer.create_file(session,
-                                      sentinel.parent_folder_id,
-                                      sentinel.file_key,
-                                      sentinel.file_name,
-                                      sentinel.source_bucket,
-                                      sentinel.dest_bucket,
-                                      sentinel.global_access_key_id,
-                                      sentinel.gobal_secret_access_key),
+    assert_equal(transfer.copy_file(session,
+                                    sentinel.parent_folder_id,
+                                    sentinel.file_key,
+                                    sentinel.file_name,
+                                    sentinel.source_bucket,
+                                    sentinel.dest_bucket,
+                                    sentinel.global_access_key_id,
+                                    sentinel.gobal_secret_access_key),
                  sentinel.updated_revision)
 
     session.post.assert_called_with(sentinel.file_self,

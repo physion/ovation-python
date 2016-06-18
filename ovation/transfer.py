@@ -68,9 +68,9 @@ def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_acce
                 parent_folder_id = folder_map[parent_folder_path]
 
             # create revision
-            create_file(session=session, file_key=file_path, file_name=file_name, parent_folder_id=parent_folder_id,
-                        source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
-                        aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            copy_file(session=session, file_key=file_path, file_name=file_name, parent_folder_id=parent_folder_id,
+                      source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                      aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
 
 
 def find_parent_path(current_path, current_entity_name):
@@ -82,8 +82,8 @@ def find_parent_path(current_path, current_entity_name):
     return current_path[:num_chars_to_remove]
 
 
-def create_file(session, parent_folder_id=None, file_key=None, file_name=None, source_bucket=None,
-                destination_bucket=None, aws_access_key_id=None, aws_secret_access_key=None):
+def copy_file(session, parent_folder_id=None, file_key=None, file_name=None, source_bucket=None,
+              destination_bucket=None, aws_access_key_id=None, aws_secret_access_key=None):
     """
     Creates an Ovation 'File' and 'Revision' record.   a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
