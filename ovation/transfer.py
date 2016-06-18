@@ -156,7 +156,7 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
 def main():
     parser = argparse.ArgumentParser(description='Transfer files from S3 to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
-    parser.add_argument('parent', help='Project or Folder UUID that will contain transfered files')
+    parser.add_argument('parent', help='Project or Folder UUID that will receive transferred files')
     parser.add_argument('source_bucket', help='Source S3 Bucket')
     parser.add_argument('aws_access_key_id', help='AWS Access Key Id')
     parser.add_argument('-p', '--password', help='Ovation password')
