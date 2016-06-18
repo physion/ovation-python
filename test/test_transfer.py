@@ -74,10 +74,6 @@ def should_create_file(create_file, boto_session, guess_content_type):
 @patch('ovation.core.create_folder')
 @patch('boto3.Session')
 def should_copy_bucket_contents(boto_session, create_folder):
-    aws_access_key_id = sentinel.access_key
-    aws_secret_access_key = sentinel.secret_key
-    source_s3_bucket = sentinel.src_bucket,
-    destination_s3_bucket = sentinel.dest_bucket
 
     aws_session = Mock()
     s3 = Mock()

@@ -1,6 +1,8 @@
 import argparse
 import json
 import os.path
+from getpass import getpass
+
 import boto3
 
 import ovation.core as core
@@ -152,19 +154,29 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
 
 
 def main():
-    ovation_user_email = input('Ovation email: ')
-    session = connect(ovation_user_email)
+    parser = argparse.ArgumentParser(description='Transfer files from S3 to Ovation')
+    parser.add_argument('-u', '--user', help='Ovation user email')
+    parser.add_argument('parent', help='Project or Folder UUID that will contain transfered files')
+    parser.add_argument('source_bucket', help='Source S3 Bucket')
+    parser.add_argument('aws_access_key_id', help='AWS Access Key Id')
+    parser.add_argument('-p', '--password', help='Ovation password')
 
-    source_s3_bucket = input('Source S3 bucket: ')
-    aws_access_key_id = input('AWS Key ID: ')
-    aws_secret_access_key = input('AWS Secret Key: ')
+    args = parser.parse_args()
 
-    project_id = input('Destination Ovation project id: ')
-    destination_s3_bucket = 'users.ovation.io'
+    user = args.user
+    if user is None:
+        user = input('Email: ')
 
-    copy_bucket_contents(session, project=project_id, aws_access_key_id=aws_access_key_id,
-                         aws_secret_access_key=aws_secret_access_key, source_s3_bucket=source_s3_bucket,
-                         destination_s3_bucket=destination_s3_bucket)
+    session = connect(user, password=args.password)
+
+    aws_secret_access_key = getpass("AWS Secret Access Key: ")
+
+    copy_bucket_contents(session,
+                         project=args.parent,
+                         aws_access_key_id=args.aws_access_key_id,
+                         aws_secret_access_key=aws_secret_access_key,
+                         source_s3_bucket=args.source_bucket,
+                         destination_s3_bucket='users.ovation.io')
 
 
 if __name__ == '__main__':
