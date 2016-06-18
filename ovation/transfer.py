@@ -1,19 +1,14 @@
-import mimetypes
-import os.path
-import threading
-
 import boto3
-import six
 import argparse
-import os
 
 import ovation.core as core
+import ovation.upload as upload
 
 from ovation.session import connect
-from pprint import pprint
-import pdb
 
-def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_access_key, source_s3_bucket, destination_s3_bucket):
+
+def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_access_key, source_s3_bucket,
+                         destination_s3_bucket):
     """
     Iterates through all keys in source_s3_bucket and moves it to destination_s3_bucket
 
@@ -24,7 +19,7 @@ def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_acce
     """
 
     src_s3_session = boto3.Session(aws_access_key_id=aws_access_key_id,
-                                aws_secret_access_key=aws_secret_access_key)
+                                   aws_secret_access_key=aws_secret_access_key)
 
     src_s3_connection = src_s3_session.resource('s3')
     src = src_s3_connection.Bucket(source_s3_bucket)
@@ -35,7 +30,7 @@ def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_acce
     for s3_object in src.objects.all():
 
         # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
-        is_folder = s3_object.key.endswith("/");
+        is_folder = s3_object.key.endswith("/")
 
         if is_folder:
 
@@ -73,7 +68,10 @@ def copy_bucket_contents(session, project_id, aws_access_key_id, aws_secret_acce
                 parent_folder_id = folder_map[parent_folder_path]
 
             # create revision
-            create_file(session=session, file_key=file_path, file_name=file_name, parent_folder_id=parent_folder_id, source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+            create_file(session=session, file_key=file_path, file_name=file_name, parent_folder_id=parent_folder_id,
+                        source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                        aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key)
+
 
 def find_parent_path(current_path, current_entity_name):
     """
@@ -83,7 +81,9 @@ def find_parent_path(current_path, current_entity_name):
     num_chars_to_remove = len(current_entity_name) * -1
     return current_path[:num_chars_to_remove]
 
-def create_file(session, parent_folder_id, file_key, file_name, source_bucket, destination_bucket, aws_access_key_id, aws_secret_access_key):
+
+def create_file(session, parent_folder_id=None, file_key=None, file_name=None, source_bucket=None,
+                destination_bucket=None, aws_access_key_id=None, aws_secret_access_key=None):
     """
     Creates an Ovation 'File' and 'Revision' record.   a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -98,15 +98,13 @@ def create_file(session, parent_folder_id, file_key, file_name, source_bucket, d
     :return: new `Revision` entity dicitonary
     """
 
-    content_type = mimetypes.guess_type(file_name)[0]
-    if content_type is None:
-        content_type = 'application/octet-stream'
+    content_type = upload.guess_content_type(file_name)
 
     # create file record
     new_file = core.create_file(session, parent_folder_id, file_name)
 
     # create revision record
-    r = session.post(new_file['links']['self'],
+    r = session.post(new_file.links.self,
                      data={'entities': [{'type': 'Revision',
                                          'attributes': {'name': file_name,
                                                         'content_type': content_type}}]})
@@ -129,9 +127,10 @@ def create_file(session, parent_folder_id, file_key, file_name, source_bucket, d
 
     # get version_id from AWS copy response and update revision record with aws version_id
     revision['attributes']['version'] = aws_response['VersionId']
-    revision_response = session.put('/api/v1/revisions/{}'.format(revision['_id']), entity=revision)
+    revision_response = session.put(revision['links']['self'], entity=revision)
 
     return revision_response
+
 
 def main():
     ovation_user_email = input('Ovation email: ')
@@ -142,9 +141,11 @@ def main():
     aws_secret_access_key = input('AWS Secret Key: ')
 
     project_id = input('Destination Ovation project id: ')
-    destination_s3_bucket='users.ovation.io'
+    destination_s3_bucket = 'users.ovation.io'
 
-    copy_bucket_contents(session, project_id=project_id, aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key, source_s3_bucket=source_s3_bucket, destination_s3_bucket=destination_s3_bucket)
+    copy_bucket_contents(session, project_id=project_id, aws_access_key_id=aws_access_key_id,
+                         aws_secret_access_key=aws_secret_access_key, source_s3_bucket=source_s3_bucket,
+                         destination_s3_bucket=destination_s3_bucket)
 
 
 if __name__ == '__main__':

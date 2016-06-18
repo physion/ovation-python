@@ -73,6 +73,13 @@ def upload_file(session, parent, file_path, progress=tqdm):
     return upload_revision(session, file, file_path, progress=progress)
 
 
+def guess_content_type(file_name):
+    content_type = mimetypes.guess_type(file_name)[0]
+    if content_type is None:
+        content_type = 'application/octet-stream'
+
+    return content_type
+
 def upload_revision(session, parent_file, local_path, progress=tqdm):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
@@ -88,9 +95,7 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
         parent_file = session.get(session.entity_path('file', id=parent_file))
 
     file_name = os.path.basename(local_path)
-    content_type = mimetypes.guess_type(file_name)[0]
-    if content_type is None:
-        content_type = 'application/octet-stream'
+    content_type = guess_content_type(file_name)
 
     r = session.post(parent_file['links']['self'],
                      data={'entities': [{'type': 'Revision',
