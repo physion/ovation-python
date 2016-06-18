@@ -18,6 +18,10 @@ def should_create_revision(boto_session):
 
     s = Mock(spec=ovation.session.Session)
 
+    def entity_path(type='', id=''):
+        return "/api/v1/{}/{}".format(type, id)
+
+    s.entity_path.side_effect = entity_path
     aws_session = Mock()
     s3 = Mock()
     boto_session.return_value = aws_session

@@ -55,7 +55,7 @@ def delete_entity(session, entity):
     return session.delete(session.entity_path(id=id))
 
 
-def undelete_entities(session, entity):
+def undelete_entity(session, entity):
     """
     Undeletes an entity
 
@@ -65,21 +65,19 @@ def undelete_entities(session, entity):
     """
 
     if isinstance(entity, six.string_types):
-        entity = get_entity(session, entity, include_trashed=True)
+        entity = get_entity(session, entity, include_trash=True)
 
-    del entity['trash_info']
-
-    return session.put(session, entity)
+    return session.put(session.entity_path(id=entity['_id']) + "/restore", entity)
 
 
-def get_entity(session, id, include_trashed=False):
+def get_entity(session, id, include_trash=False):
     """
     Gets an entity by ID
 
     :param session: ovation.session.Session
     :param id: entity ID
-    :param: include_trashed: if true, return trashed entities
+    :param: include_trash: if true, return trashed entities
     :return: entity Dict
     """
 
-    return session.get(session.entity_path(id=id), params={"include-trashed": include_trashed})
+    return session.get(session.entity_path(id=id), params={"trash": str(include_trash).lower()})
