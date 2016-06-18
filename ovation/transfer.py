@@ -1,5 +1,7 @@
-import boto3
 import argparse
+import json
+import os.path
+import boto3
 
 import ovation.core as core
 import ovation.upload as upload
@@ -10,7 +12,7 @@ from tqdm import tqdm
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
                          source_s3_bucket=None, destination_s3_bucket=None, progress=tqdm,
-                         copy_file=None):
+                         copy_file=None, checkpoint=None):
 
     """
 
@@ -32,8 +34,18 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     folder_map = {}
     files = set()
+    if checkpoint is not None:
+        if os.path.isfile(checkpoint):
+            with open(checkpoint,'r') as f:
+                r = json.load(f)
+                folder_map = r['folder_map']
+                files = r['files']
 
     for s3_object in src.objects.all():
+
+        if checkpoint is not None:
+            with open(checkpoint, 'w') as f:
+                json.dump({'files': files, 'folder_map': folder_map}, f)
 
         if s3_object.key.endswith("/"):
             # s3_object is a Folder
@@ -44,11 +56,10 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
             # e.g. current_folder --> 'Folder3'
             current_folder = folder_list[-1]
+            parent_folder_path = '/'.join(folder_list[:-1]) + '/'
 
             # if nested folder
             if len(folder_list) > 1:
-                current_folder_name = current_folder + "/"
-                parent_folder_path = find_parent_path(current_path=folder_path, current_entity_name=current_folder_name)
                 parent = folder_map[parent_folder_path]
                 new_folder = core.create_folder(session, parent, current_folder)
 
@@ -68,7 +79,6 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             parent = project
 
             if len(path_list) > 1:
-                parent_folder_path = find_parent_path(current_path=file_path, current_entity_name=file_name)
                 parent = folder_map[parent_folder_path]
 
             # create revision
