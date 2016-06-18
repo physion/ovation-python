@@ -31,7 +31,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     src = src_s3_connection.Bucket(source_s3_bucket)
 
     folder_map = {}
-    files = []
+    files = set()
 
     for s3_object in src.objects.all():
 
@@ -72,11 +72,11 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
                 parent = folder_map[parent_folder_path]
 
             # create revision
-            files.append(copy_file(session, file_key=file_path, file_name=file_name, parent=parent,
-                                   source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
-                                   aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key))
+            files.add(copy_file(session, file_key=file_path, file_name=file_name, parent=parent,
+                                source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                                aws_access_key_id=aws_access_key_id, aws_secret_access_key=aws_secret_access_key))
 
-    return {'files': files, 'folders': folder_map.keys()}
+    return {'files': files, 'folders': folder_map.values()}
 
 
 def find_parent_path(current_path, current_entity_name):

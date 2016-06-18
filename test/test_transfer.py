@@ -1,7 +1,6 @@
 from unittest.mock import Mock, sentinel, patch, call
 
 from nose.tools import istest, assert_equal
-from tqdm import tqdm
 
 from ovation.session import DataDict
 
@@ -97,31 +96,15 @@ def should_copy_bucket_contents(boto_session, create_folder):
 
     create_folder.side_effect = [sentinel.f1, sentinel.f2, sentinel.f3]
 
-    copy_file = Mock()
+    copy_file = Mock(return_value=sentinel.revision1)
 
-    transfer.copy_bucket_contents(sentinel.ov_session,
-                                  project=sentinel.project,
-                                  aws_access_key_id=sentinel.access_key_id,
-                                  aws_secret_access_key=sentinel.secret_access_key,
-                                  source_s3_bucket=sentinel.src_bucket,
-                                  destination_s3_bucket=sentinel.dest_bucket,
-                                  copy_file=copy_file)
-
-    create_folder.assert_has_calls([call(sentinel.ov_session,
-                                         sentinel.project,
-                                         'f1'),
-                                    call(sentinel.ov_session,
-                                         sentinel.f1,
-                                         'f2'),
-                                    call(sentinel.ov_session,
-                                         sentinel.f2,
-                                         'f3')], any_order=True)
-
-    copy_file.assert_called_once_with(sentinel.ov_session,
-                                      file_key='f1/file1.txt',
-                                      file_name='file1.txt',
-                                      parent=sentinel.f1,
-                                      source_bucket=sentinel.src_bucket,
-                                      destination_bucket=sentinel.dest_bucket,
+    r = transfer.copy_bucket_contents(sentinel.ov_session,
+                                      project=sentinel.project,
                                       aws_access_key_id=sentinel.access_key_id,
-                                      aws_secret_access_key=sentinel.secret_access_key)
+                                      aws_secret_access_key=sentinel.secret_access_key,
+                                      source_s3_bucket=sentinel.src_bucket,
+                                      destination_s3_bucket=sentinel.dest_bucket,
+                                      copy_file=copy_file)
+
+    assert_equal(set(r['folders']), set([sentinel.f1, sentinel.f2, sentinel.f3]))
+    assert_equal(r['files'], set([sentinel.revision1]))
