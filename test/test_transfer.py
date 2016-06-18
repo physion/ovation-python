@@ -1,6 +1,9 @@
-from unittest.mock import Mock, sentinel, patch
+from unittest.mock import Mock, sentinel, patch, call
 
 from nose.tools import istest, assert_equal
+from tqdm import tqdm
+
+from ovation.session import DataDict
 
 import ovation.session
 import ovation.transfer as transfer
@@ -68,27 +71,57 @@ def should_create_file(create_file, boto_session, guess_content_type):
                                                           'content_type': sentinel.content_type}})
 
 
-
-
-
 @istest
+@patch('ovation.core.create_folder')
 @patch('boto3.Session')
-def should_copy_bucket_contents(boto_session):
-
-    session = Mock(spec=ovation.session.Session)
-    project_id = 1
+def should_copy_bucket_contents(boto_session, create_folder):
     aws_access_key_id = sentinel.access_key
     aws_secret_access_key = sentinel.secret_key
-    source_s3_bucket = sentinel.bucket,
-    destination_s3_bucket = "test2"
+    source_s3_bucket = sentinel.src_bucket,
+    destination_s3_bucket = sentinel.dest_bucket
 
     aws_session = Mock()
     s3 = Mock()
-    boto_session.return_value = aws_session
-    aws_session.resource = Mock(return_value=s3)
-
     bucket = Mock()
-    s3.Bucket = Mock(return_value=bucket)
 
-    #TBD
-    #Follow up wity barry regarding syntax
+    boto_session.return_value = aws_session
+    aws_session.resource.return_value = s3
+    s3.Bucket.return_value = bucket
+
+    keys = [DataDict({'key': 'f1/'}),
+            DataDict({'key': 'f1/f2/'}),
+            DataDict({'key': 'f1/f2/f3/'}),
+            DataDict({'key': 'f1/file1.txt'})]
+
+    bucket.objects.all.return_value = keys
+
+    create_folder.side_effect = [sentinel.f1, sentinel.f2, sentinel.f3]
+
+    copy_file = Mock()
+
+    transfer.copy_bucket_contents(sentinel.ov_session,
+                                  project=sentinel.project,
+                                  aws_access_key_id=sentinel.access_key_id,
+                                  aws_secret_access_key=sentinel.secret_access_key,
+                                  source_s3_bucket=sentinel.src_bucket,
+                                  destination_s3_bucket=sentinel.dest_bucket,
+                                  copy_file=copy_file)
+
+    create_folder.assert_has_calls([call(sentinel.ov_session,
+                                         sentinel.project,
+                                         'f1'),
+                                    call(sentinel.ov_session,
+                                         sentinel.f1,
+                                         'f2'),
+                                    call(sentinel.ov_session,
+                                         sentinel.f2,
+                                         'f3')], any_order=True)
+
+    copy_file.assert_called_once_with(sentinel.ov_session,
+                                      file_key='f1/file1.txt',
+                                      file_name='file1.txt',
+                                      parent=sentinel.f1,
+                                      source_bucket=sentinel.src_bucket,
+                                      destination_bucket=sentinel.dest_bucket,
+                                      aws_access_key_id=sentinel.access_key_id,
+                                      aws_secret_access_key=sentinel.secret_access_key)
