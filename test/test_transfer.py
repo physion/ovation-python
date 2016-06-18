@@ -107,4 +107,4 @@ def should_copy_bucket_contents(boto_session, create_folder):
                                       copy_file=copy_file)
 
     assert_equal(set(r['folders']), {sentinel.f1, sentinel.f2, sentinel.f3})
-    assert_equal(r['files'], {sentinel.revision1})
+    assert_equal(set(r['files']), {sentinel.revision1})
