@@ -37,6 +37,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     folder_map = {}
     files = {}
 
+    # Restore state from checkpoint if provided
     if checkpoint is not None:
         if os.path.isfile(checkpoint):
             with open(checkpoint,'r') as f:
@@ -46,6 +47,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     for s3_object in src.objects.all():
 
+        # Save a checkpoint
         if checkpoint is not None:
             with open(checkpoint, 'w') as f:
                 json.dump({'files': files, 'folder_map': folder_map}, f)
@@ -176,7 +178,8 @@ def main():
                          aws_access_key_id=args.aws_access_key_id,
                          aws_secret_access_key=aws_secret_access_key,
                          source_s3_bucket=args.source_bucket,
-                         destination_s3_bucket='users.ovation.io')
+                         destination_s3_bucket='users.ovation.io',
+                         checkpoint='.transfer_checkpoint.json')
 
 
 if __name__ == '__main__':
