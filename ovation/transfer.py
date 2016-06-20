@@ -47,7 +47,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     folder_map = {}
     files = {}
 
-    logger.info('Starting transfer from s3 bucket: ' + source_s3_bucket)
+    logger.info('Starting transfer from s3 bucket: ' + str(source_s3_bucket))
 
     # Restore state from checkpoint if provided
     if checkpoint is not None:
@@ -94,7 +94,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
                     new_folder = core.create_folder(session, project, current_folder)
                     folder_map[folder_path] = new_folder
             else:
-                logger.info('Skipping folder: ' + folder_path + ' Has been transferred previously')
+                logger.info('Skipping folder: ' + folder_path + ' has been transferred previously')
 
         else:
             # s3_object is a file
@@ -118,7 +118,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
                                              aws_secret_access_key=aws_secret_access_key)
 
             else:
-                logger.info('Skipping file: ' + file_path + ' Has been transferred previously')
+                logger.info('Skipping file: ' + file_path + ' has been transferred previously')
 
 
     # Save last checkpoint
