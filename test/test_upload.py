@@ -14,7 +14,8 @@ def should_create_revision(boto_session):
     path = '/local/path/file.txt'
     rev = {'_id': 1,
            'type': 'Revision',
-           'attributes': {'url': sentinel.url}}
+           'attributes': {'url': sentinel.url},
+           'links': {'upload-complete': sentinel.upload_complete}}
 
     s = Mock(spec=ovation.session.Session)
 
@@ -52,13 +53,7 @@ def should_create_revision(boto_session):
     file_obj.upload_file.assert_called_with(path, ExtraArgs={'ContentType': 'text/plain',
                                                              'ServerSideEncryption': 'AES256'})
 
-    updated_rev = copy.deepcopy(rev)
-    updated_rev['attributes']['version'] = sentinel.version
-
-    s.put.assert_called_with('/api/v1/revisions/1', entity={'_id': 1,
-                                                            'attributes': {'version': sentinel.version,
-                                                                           'url': sentinel.url},
-                                                            'type': 'Revision'})
+    s.put.assert_called_with(sentinel.upload_complete, entity=None)
 
     assert_equal(result, sentinel.result)
 

@@ -119,9 +119,7 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     else:
         file_obj.upload_file(local_path, ExtraArgs=args)
 
-    revision['attributes']['version'] = file_obj.version_id
-
-    return session.put(session.entity_path(type='revisions', id=revision['_id']), entity=revision)
+    return session.put(revision['links']['upload-complete'], entity=None)
 
 
 def main():
