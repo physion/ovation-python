@@ -71,6 +71,8 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         if s3_object.key.endswith("/"):
             # s3_object is a Folder
             # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
+            logger.info('Found folder: ' + folder_path)
+
 
             folder_path = s3_object.key
             folder_list = folder_path.split('/')[:-1]  # Drop trailing
@@ -101,16 +103,22 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             file_path = s3_object.key
             path_list = s3_object.key.split('/')
 
+            logger.info('Found file: ' + file_path)
+
             # e.g file_name --> 'test.png'
             file_name = path_list[-1]
             parent = project
 
             if len(path_list) > 1:
+                parent_folder_path = '/'.join(path_list[:-1]) + '/'
+                logger.info('Found file parent folder: ' + parent_folder_path)
                 parent = folder_map[parent_folder_path]
+            else:
+                logger.info('File parent is project')
 
             # create revision
             if file_path not in files:
-                logger.info('Transfering file: ' + file_path)
+                logger.info('Copying file: ' + file_path)
 
                 files[file_path] = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
                                              source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
@@ -129,15 +137,6 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     logger.info('Transfer completed')
 
     return {'files': files.values(), 'folders': folder_map.values()}
-
-
-def find_parent_path(current_path, current_entity_name):
-    """
-    Takes in a fullpath ('Folder1/Folder2/Folder3/'), and a current_entity_name ('Folder3/')
-    and returns the parent_path ('Folder1/Folder2/')
-    """
-    num_chars_to_remove = len(current_entity_name) * -1
-    return current_path[:num_chars_to_remove]
 
 
 def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket=None,
