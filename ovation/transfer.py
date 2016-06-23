@@ -74,7 +74,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             file_path = s3_object.key
             logging.info('Listed S3 file: ' + file_path)
 
-            find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key)
+            find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key, copy_file)
 
     # Save last checkpoint
     if checkpoint is not None:
@@ -85,7 +85,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     return {'files': files.values(), 'folders': folder_map.values()}
 
-def find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key):
+def find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key, copy_file):
 
     if file_path not in files:
         logging.info('Creating file: ' + file_path)
