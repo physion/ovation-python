@@ -9,8 +9,8 @@ import ovation.core as core
 import ovation.upload as upload
 
 from ovation.session import connect
+from ovation.session import Session
 from tqdm import tqdm
-
 import logging
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
@@ -29,12 +29,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     :return: {'folders': [ created folders ], 'files': [ copied files ] }
     """
 
-    # set logging for library
-    logger = logging.getLogger('transfer_library')
-    logger.setLevel(logging.INFO)
-    cl = logging.StreamHandler()
-    logger.addHandler(cl)
-
+    logging.basicConfig(level=logging.INFO)
 
     src_s3_session = boto3.Session(aws_access_key_id=aws_access_key_id,
                                    aws_secret_access_key=aws_secret_access_key)
@@ -45,10 +40,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     folder_map = {}
     files = {}
 
-    folder_list = []
-    file_list = []
-
-    logger.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
+    logging.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
 
     # Restore state from checkpoint if provided
     if checkpoint is not None:
@@ -60,7 +52,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     s3_object_list = src.objects.all()
     num_objects_to_transfer = len(list(s3_object_list))
-    logger.info(str(num_objects_to_transfer) + ' objects found to transfer')
+    logging.info(str(num_objects_to_transfer) + ' objects found to transfer')
 
     for s3_object in s3_object_list:
 
@@ -72,82 +64,83 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         if s3_object.key.endswith("/"):
             # s3_object is a Folder
             # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
-            folder_list.append(s3_object)
+
+            folder_path = s3_object.key
+            logging.info('Listed S3 folder: ' + folder_path)
+
+            find_or_create_folder(folder_map, folder_path, project, session)
         else:
             # s3_object is a file
-            file_list.append(s3_object)
+            file_path = s3_object.key
+            logging.info('Listed S3 file: ' + file_path)
 
-    # process all folders
-    for s3_object in folder_list:
-
-        folder_path = s3_object.key
-        logger.info('Found folder: ' + folder_path)
-
-        folder_list = folder_path.split('/')[:-1]  # Drop trailing
-
-        # e.g. current_folder --> 'Folder3'
-        current_folder = folder_list[-1]
-        parent_folder_path = '/'.join(folder_list[:-1]) + '/'
-
-        if folder_path not in folder_map:
-
-            logger.info('Transfering folder: ' + folder_path)
-
-            # if nested folder
-            if len(folder_list) > 1:
-                parent = folder_map[parent_folder_path]
-                new_folder = core.create_folder(session, parent, current_folder)
-
-                folder_map[folder_path] = new_folder
-            else:
-                # folder is at project root (project_id is the parent_id)
-                new_folder = core.create_folder(session, project, current_folder)
-                folder_map[folder_path] = new_folder
-        else:
-            logger.info('Skipping folder: ' + folder_path + ' has been transferred previously')
-
-
-    # process all files
-    for s3_object in file_list:
-
-        file_path = s3_object.key
-        path_list = s3_object.key.split('/')
-
-        logger.info('Found file: ' + file_path)
-
-        # e.g file_name --> 'test.png'
-        file_name = path_list[-1]
-        parent = project
-
-        if len(path_list) > 1:
-            parent_folder_path = '/'.join(path_list[:-1]) + '/'
-            logger.info('Found file parent folder: ' + parent_folder_path)
-            parent = folder_map[parent_folder_path]
-        else:
-            logger.info('File parent is project')
-
-        # create revision
-        if file_path not in files:
-            logger.info('Copying file: ' + file_path)
-
-            files[file_path] = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
-                                         source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
-                                         aws_access_key_id=aws_access_key_id,
-                                         aws_secret_access_key=aws_secret_access_key)
-
-        else:
-            logger.info('Skipping file: ' + file_path + ' has been transferred previously')
-
+            find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key)
 
     # Save last checkpoint
     if checkpoint is not None:
         with open(checkpoint, 'w') as f:
             json.dump({'files': files, 'folder_map': folder_map}, f)
 
-    logger.info('Transfer completed')
+    logging.info('Transfer completed')
 
     return {'files': files.values(), 'folders': folder_map.values()}
 
+def find_or_create_file(files, file_path, project, folder_map, session, source_s3_bucket, destination_s3_bucket, aws_access_key_id, aws_secret_access_key):
+
+    if file_path not in files:
+        logging.info('Creating file: ' + file_path)
+
+        path_list = file_path.split('/')
+
+        # e.g file_name --> 'test.png'
+        file_name = path_list[-1]
+        parent_id = None
+
+        if len(path_list) > 1:
+            parent_folder_path = '/'.join(path_list[:-1]) + '/'
+            logging.info('File parent folder is: ' + parent_folder_path)
+            parent = find_or_create_folder(folder_map, parent_folder_path, project, session)
+        else:
+            logging.info('File parent is project')
+            parent = project
+
+        files[file_path] = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
+                                     source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                                     aws_access_key_id=aws_access_key_id,
+                                     aws_secret_access_key=aws_secret_access_key)
+
+    else:
+        logging.info('No need to create file: ' + file_path + '. Found in already created files list.')
+
+
+def find_or_create_folder(folder_map, folder_path, project, session):
+    found_or_created_folder = None
+    folder_list = folder_path.split('/')[:-1]  # Drop trailing
+
+    if folder_path not in folder_map:
+
+        logging.info('Creating folder: ' + folder_path)
+
+        # e.g. current_folder --> 'Folder3'
+        current_folder = folder_list[-1]
+        parent_folder_path = '/'.join(folder_list[:-1]) + '/'
+        parent = None
+
+        # if nested folder
+        if len(folder_list) > 1:
+            logging.info('Folder parent_folder is: ' + parent_folder_path)
+            parent = find_or_create_folder(folder_map, parent_folder_path, project, session)
+        else:
+            logging.info('Folder parent_folder is: project')
+            parent = project
+
+        found_or_created_folder = core.create_folder(session, parent, current_folder)
+        folder_map[folder_path] = found_or_created_folder
+    else:
+        logging.info('No need to create folder: ' + folder_path + '. Found in folder_map')
+        found_or_created_folder = folder_map[folder_path]
+
+    return found_or_created_folder
 
 def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket=None,
               destination_bucket=None, aws_access_key_id=None, aws_secret_access_key=None):
@@ -202,20 +195,29 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
 def main():
     parser = argparse.ArgumentParser(description='Transfer files from S3 to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
+    parser.add_argument('-p', '--password', help='Ovation password')
+    parser.add_argument('-t', '--token', help='Ovation user email')
     parser.add_argument('parent', help='Project or Folder UUID that will receive transferred files')
     parser.add_argument('source_bucket', help='Source S3 Bucket')
     parser.add_argument('aws_access_key_id', help='AWS Access Key Id')
-    parser.add_argument('-p', '--password', help='Ovation password')
+    parser.add_argument('aws_secret_access_key', help='AWS Secret Key')
 
     args = parser.parse_args()
+    session = None
 
-    user = args.user
-    if user is None:
-        user = input('Email: ')
+    token = args.token
+    if token is None:
+        user = args.user
+        if user is None:
+            user = input('Email: ')
 
-    session = connect(user, password=args.password)
 
-    aws_secret_access_key = getpass("AWS Secret Access Key: ")
+        session = connect(user, password=args.password)
+
+    else:
+        session = Session(token)
+
+    aws_secret_access_key = args.aws_secret_access_key
 
     copy_bucket_contents(session,
                          project=args.parent,
