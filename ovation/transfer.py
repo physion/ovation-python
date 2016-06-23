@@ -32,9 +32,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     # set logging for library
     logger = logging.getLogger('transfer_library')
     logger.setLevel(logging.INFO)
-    fl = logging.FileHandler('.transfer_results.log')
     cl = logging.StreamHandler()
-    logger.addHandler(fl)
     logger.addHandler(cl)
 
 
@@ -47,7 +45,10 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     folder_map = {}
     files = {}
 
-    logger.info('Starting transfer from s3 bucket: ' + str(source_s3_bucket))
+    folder_list = []
+    file_list = []
+
+    logger.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
 
     # Restore state from checkpoint if provided
     if checkpoint is not None:
@@ -71,62 +72,71 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         if s3_object.key.endswith("/"):
             # s3_object is a Folder
             # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
-
-            folder_path = s3_object.key
-            logger.info('Found folder: ' + folder_path)
-
-            folder_list = folder_path.split('/')[:-1]  # Drop trailing
-
-            # e.g. current_folder --> 'Folder3'
-            current_folder = folder_list[-1]
-            parent_folder_path = '/'.join(folder_list[:-1]) + '/'
-
-            if folder_path not in folder_map:
-
-                logger.info('Transfering folder: ' + folder_path)
-
-                # if nested folder
-                if len(folder_list) > 1:
-                    parent = folder_map[parent_folder_path]
-                    new_folder = core.create_folder(session, parent, current_folder)
-
-                    folder_map[folder_path] = new_folder
-                else:
-                    # folder is at project root (project_id is the parent_id)
-                    new_folder = core.create_folder(session, project, current_folder)
-                    folder_map[folder_path] = new_folder
-            else:
-                logger.info('Skipping folder: ' + folder_path + ' has been transferred previously')
-
+            folder_list.append(s3_object)
         else:
             # s3_object is a file
-            file_path = s3_object.key
-            path_list = s3_object.key.split('/')
+            file_list.append(s3_object)
 
-            logger.info('Found file: ' + file_path)
+    # process all folders
+    for s3_object in folder_list:
 
-            # e.g file_name --> 'test.png'
-            file_name = path_list[-1]
-            parent = project
+        folder_path = s3_object.key
+        logger.info('Found folder: ' + folder_path)
 
-            if len(path_list) > 1:
-                parent_folder_path = '/'.join(path_list[:-1]) + '/'
-                logger.info('Found file parent folder: ' + parent_folder_path)
+        folder_list = folder_path.split('/')[:-1]  # Drop trailing
+
+        # e.g. current_folder --> 'Folder3'
+        current_folder = folder_list[-1]
+        parent_folder_path = '/'.join(folder_list[:-1]) + '/'
+
+        if folder_path not in folder_map:
+
+            logger.info('Transfering folder: ' + folder_path)
+
+            # if nested folder
+            if len(folder_list) > 1:
                 parent = folder_map[parent_folder_path]
+                new_folder = core.create_folder(session, parent, current_folder)
+
+                folder_map[folder_path] = new_folder
             else:
-                logger.info('File parent is project')
+                # folder is at project root (project_id is the parent_id)
+                new_folder = core.create_folder(session, project, current_folder)
+                folder_map[folder_path] = new_folder
+        else:
+            logger.info('Skipping folder: ' + folder_path + ' has been transferred previously')
 
-            # create revision
-            if file_path not in files:
-                logger.info('Copying file: ' + file_path)
 
-                files[file_path] = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
-                                             source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
-                                             aws_access_key_id=aws_access_key_id,
-                                             aws_secret_access_key=aws_secret_access_key)
+    # process all files
+    for s3_object in file_list:
 
-            else:
-                logger.info('Skipping file: ' + file_path + ' has been transferred previously')
+        file_path = s3_object.key
+        path_list = s3_object.key.split('/')
+
+        logger.info('Found file: ' + file_path)
+
+        # e.g file_name --> 'test.png'
+        file_name = path_list[-1]
+        parent = project
+
+        if len(path_list) > 1:
+            parent_folder_path = '/'.join(path_list[:-1]) + '/'
+            logger.info('Found file parent folder: ' + parent_folder_path)
+            parent = folder_map[parent_folder_path]
+        else:
+            logger.info('File parent is project')
+
+        # create revision
+        if file_path not in files:
+            logger.info('Copying file: ' + file_path)
+
+            files[file_path] = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
+                                         source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                                         aws_access_key_id=aws_access_key_id,
+                                         aws_secret_access_key=aws_secret_access_key)
+
+        else:
+            logger.info('Skipping file: ' + file_path + ' has been transferred previously')
 
 
     # Save last checkpoint
