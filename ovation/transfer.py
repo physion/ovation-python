@@ -71,10 +71,10 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         if s3_object.key.endswith("/"):
             # s3_object is a Folder
             # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
-            logger.info('Found folder: ' + folder_path)
-
 
             folder_path = s3_object.key
+            logger.info('Found folder: ' + folder_path)
+
             folder_list = folder_path.split('/')[:-1]  # Drop trailing
 
             # e.g. current_folder --> 'Folder3'
