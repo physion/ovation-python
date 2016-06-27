@@ -1,16 +1,23 @@
-from unittest.mock import Mock, sentinel, patch, call
-
-from nose.tools import istest, assert_equal
-
-from ovation.session import DataDict
-
+import os.path
 import ovation.session
 import ovation.transfer as transfer
+from ovation.session import DataDict
+
+from unittest.mock import Mock, sentinel, patch, call
+from nose.tools import istest, assert_equal, with_setup
+
+def setup():
+    pass
+
+def teardown():
+    if os.path.isfile('.checkpoint.csv'):
+        os.remove('.checkpoint.csv')
 
 @istest
 @patch('ovation.upload.guess_content_type')
 @patch('boto3.Session')
 @patch('ovation.core.create_file')
+@with_setup(setup, teardown)
 def should_create_file(create_file, boto_session, guess_content_type):
     create_file.return_value = ovation.session.DataDict(
             {'links': ovation.session.DataDict({'self': sentinel.file_self})})
@@ -67,6 +74,7 @@ def should_create_file(create_file, boto_session, guess_content_type):
 @istest
 @patch('ovation.core.create_folder')
 @patch('boto3.Session')
+@with_setup(setup, teardown)
 def should_copy_bucket_contents(boto_session, create_folder):
 
     aws_session = Mock()
@@ -84,9 +92,9 @@ def should_copy_bucket_contents(boto_session, create_folder):
 
     bucket.objects.all.return_value = keys
 
-    create_folder.side_effect = [sentinel.f1, sentinel.f2, sentinel.f3]
+    create_folder.side_effect = [{'_id': sentinel.f1}, {'_id': sentinel.f2}, {'_id': sentinel.f3}]
 
-    copy_file = Mock(return_value=sentinel.revision1)
+    copy_file = Mock(return_value={'_id': sentinel.revision1})
 
     r = transfer.copy_bucket_contents(sentinel.ov_session,
                                       project=sentinel.project,
@@ -96,5 +104,4 @@ def should_copy_bucket_contents(boto_session, create_folder):
                                       destination_s3_bucket=sentinel.dest_bucket,
                                       copy_file=copy_file)
 
-    assert_equal(set(r['folders']), {sentinel.f1, sentinel.f2, sentinel.f3})
-    assert_equal(set(r['files']), {sentinel.revision1})
+    assert_equal(set(r.values()), {sentinel.revision1, sentinel.f1, sentinel.f2, sentinel.f3})
