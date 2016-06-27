@@ -53,7 +53,17 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     :return: {'folders': [ created folders ], 'files': [ copied files ] }
     """
 
+<<<<<<< HEAD
+    # set logging for library
+    logger = logging.getLogger('transfer_library')
+    logger.setLevel(logging.INFO)
+    fl = logging.FileHandler('.transfer_results.log')
+    cl = logging.StreamHandler()
+    logger.addHandler(fl)
+    logger.addHandler(cl)
+=======
     logging.basicConfig(level=logging.INFO)
+>>>>>>> master
 
     src_s3_session = boto3.Session(aws_access_key_id=aws_access_key_id,
                                    aws_secret_access_key=aws_secret_access_key)
@@ -107,7 +117,15 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         with open(checkpoint, 'w') as f:
             json.dump({'files': files, 'folder_map': folder_map}, f)
 
+<<<<<<< HEAD
+                # if nested folder
+                if len(folder_list) > 1:
+                    parent = folder_map[parent_folder_path]
+                    new_folder = core.create_folder(session, parent, current_folder, attributes={'original_s3_path': s3_object.key,
+                                                                                                 'original_s3_bucket': source_s3_bucket})
+=======
     logging.info('Transfer completed')
+>>>>>>> master
 
     return {'files': files.values(), 'folders': folder_map.values()}
 
@@ -135,9 +153,16 @@ def find_or_create_file(files, file_path, project, folder_map, session, source_s
                                      aws_access_key_id=aws_access_key_id,
                                      aws_secret_access_key=aws_secret_access_key)
 
+<<<<<<< HEAD
+    # Save last checkpoint
+    if checkpoint is not None:
+        with open(checkpoint, 'w') as f:
+            json.dump({'files': files, 'folder_map': folder_map}, f)
+=======
     else:
         logging.info('No need to create file: ' + file_path + '. Found in already created files list.')
 
+>>>>>>> master
 
 def find_or_create_folder(folder_map, folder_path, project, session):
     found_or_created_folder = None

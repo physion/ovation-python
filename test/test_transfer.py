@@ -7,12 +7,6 @@ from ovation.session import DataDict
 import ovation.session
 import ovation.transfer as transfer
 
-
-@istest
-def should_find_parent_path():
-    assert_equal(transfer.find_parent_path('f1/f2/f3/', 'f3/'), 'f1/f2/')
-
-
 @istest
 @patch('ovation.upload.guess_content_type')
 @patch('boto3.Session')

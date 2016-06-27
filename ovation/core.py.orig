@@ -26,11 +26,16 @@ def _create_contents(session, entity_type, parent, name, attributes=None):
     if isinstance(parent, six.string_types):
         parent = session.get(session.entity_path('entities', id=parent))
 
+<<<<<<< HEAD
     attr = attributes
     attr.update({'type': entity_type,
                  'attributes': {'name': name}})
 
-    result = session.post(parent['links']['self'], data={'entities': [attr]})
+    result = session.post(parent.links['self'], data={'entities': []})
+=======
+    result = session.post(parent['links']['self'], data={'entities': [{'type': entity_type,
+                                                                  'attributes': {'name': name}}]})
+>>>>>>> master
     return simplify_response(result['entities'][0])
 
 
