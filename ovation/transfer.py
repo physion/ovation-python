@@ -13,10 +13,34 @@ from tqdm import tqdm
 
 import logging
 
+
+def _update_checkpoint(checkpoint):
+    """
+    Updates a checkpoint file created using dict values to have uuid values.
+
+    :param checkpoint: checkpoint file path
+    """
+    with open(checkpoint, 'r') as f:
+        r = json.load(f)
+        folder_map = r['folder_map']
+        files = r['files']
+
+    updated_folder_map = {}
+    updated_files = {}
+
+    for k, v in folder_map.items():
+        updated_folder_map[k] = v['_id']
+
+    for k, v in files.items():
+        updated_files[k] = v['_id']
+
+    with open(checkpoint, 'w') as f:
+        json.dump({'files': updated_files, 'folder_map': updated_folder_map}, f)
+
+
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
                          source_s3_bucket=None, destination_s3_bucket=None, progress=tqdm,
                          copy_file=None, checkpoint=None):
-
     """
 
     :param session:
@@ -37,7 +61,6 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     logger.addHandler(fl)
     logger.addHandler(cl)
 
-
     src_s3_session = boto3.Session(aws_access_key_id=aws_access_key_id,
                                    aws_secret_access_key=aws_secret_access_key)
 
@@ -52,7 +75,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     # Restore state from checkpoint if provided
     if checkpoint is not None:
         if os.path.isfile(checkpoint):
-            with open(checkpoint,'r') as f:
+            with open(checkpoint, 'r') as f:
                 r = json.load(f)
                 folder_map = r['folder_map']
                 files = r['files']
@@ -61,7 +84,9 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     num_objects_to_transfer = len(list(s3_object_list))
     logger.info(str(num_objects_to_transfer) + ' objects found to transfer')
 
-    for s3_object in s3_object_list:
+    # Go through list once for folders; tqdm
+    # Go through list second time for files (multiprocessing)
+    for s3_object in tqdm(s3_object_list):
 
         # Save a checkpoint
         if checkpoint is not None:
@@ -86,7 +111,8 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
                 # if nested folder
                 if len(folder_list) > 1:
                     parent = folder_map[parent_folder_path]
-                    new_folder = core.create_folder(session, parent, current_folder)
+                    new_folder = core.create_folder(session, parent, current_folder, attributes={'original_s3_path': s3_object.key,
+                                                                                                 'original_s3_bucket': source_s3_bucket})
 
                     folder_map[folder_path] = new_folder
                 else:
@@ -119,7 +145,6 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
             else:
                 logger.info('Skipping file: ' + file_path + ' has been transferred previously')
-
 
     # Save last checkpoint
     if checkpoint is not None:
