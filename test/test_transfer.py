@@ -6,12 +6,15 @@ from ovation.session import DataDict
 from unittest.mock import Mock, sentinel, patch, call
 from nose.tools import istest, assert_equal, with_setup
 
+
 def setup():
     pass
+
 
 def teardown():
     if os.path.isfile('.checkpoint.csv'):
         os.remove('.checkpoint.csv')
+
 
 @istest
 @patch('ovation.upload.guess_content_type')
@@ -25,7 +28,8 @@ def should_create_file(create_file, boto_session, guess_content_type):
     session = Mock(spec=ovation.session.Session)
     session.post.return_value = {'entities': [{'type': 'Revision',
                                                '_id': sentinel.revision_id,
-                                               'links': {'self': sentinel.revision_self},
+                                               'links': {'self': sentinel.revision_self,
+                                                         'update-complete': sentinel.update_complete},
                                                'attributes': {'name': sentinel.file_name,
                                                               'content_type': sentinel.content_type}}],
                                  'aws': [{'aws': {'key': sentinel.aws_key,
@@ -62,13 +66,13 @@ def should_create_file(create_file, boto_session, guess_content_type):
                                                         'attributes': {'name': sentinel.file_name,
                                                                        'content_type': sentinel.content_type}}]})
     file_obj.copy_from.assert_called_with(CopySource='{}/{}'.format(sentinel.source_bucket, sentinel.file_key))
-    session.put.assert_called_with(sentinel.revision_self,
-                                   entity={'type': 'Revision',
-                                           '_id': sentinel.revision_id,
-                                           'links': {'self': sentinel.revision_self},
-                                           'attributes': {'name': sentinel.file_name,
-                                                          'version': sentinel.version_id,
-                                                          'content_type': sentinel.content_type}})
+    session.put.assert_called_with(sentinel.update_complete,
+                                   entity={})
+
+
+def mock_copy_file(session, parent=None, file_key=None, file_name=None, source_bucket=None,
+                   destination_bucket=None, aws_access_key_id=None, aws_secret_access_key=None):
+    return {'_id': sentinel.revision1}
 
 
 @istest
@@ -76,7 +80,6 @@ def should_create_file(create_file, boto_session, guess_content_type):
 @patch('boto3.Session')
 @with_setup(setup, teardown)
 def should_copy_bucket_contents(boto_session, create_folder):
-
     aws_session = Mock()
     s3 = Mock()
     bucket = Mock()
@@ -94,14 +97,12 @@ def should_copy_bucket_contents(boto_session, create_folder):
 
     create_folder.side_effect = [{'_id': sentinel.f1}, {'_id': sentinel.f2}, {'_id': sentinel.f3}]
 
-    copy_file = Mock(return_value={'_id': sentinel.revision1})
-
     r = transfer.copy_bucket_contents(sentinel.ov_session,
                                       project=sentinel.project,
                                       aws_access_key_id=sentinel.access_key_id,
                                       aws_secret_access_key=sentinel.secret_access_key,
                                       source_s3_bucket=sentinel.src_bucket,
                                       destination_s3_bucket=sentinel.dest_bucket,
-                                      copy_file=copy_file)
+                                      copy_file_fn=mock_copy_file)
 
-    assert_equal(set(r.values()), {sentinel.revision1, sentinel.f1, sentinel.f2, sentinel.f3})
+    assert_equal(set(map(str, r.values())), set(map(str, {sentinel.revision1, sentinel.f1, sentinel.f2, sentinel.f3})))

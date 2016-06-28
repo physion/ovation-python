@@ -11,10 +11,21 @@ import ovation.upload as upload
 from ovation.session import connect
 from ovation.session import Session
 from tqdm import tqdm
+from multiprocessing import Pool, Manager
+from multiprocessing.managers import BaseManager
 
+# Checkpoing CSV columns
 PATH = 'path'
 ID = 'id'
 FIELDNAMES = [PATH, ID]
+
+# Multiprocessing pool size
+POOL_SIZE = 5
+
+# File chunk size. Each process will receive this number of files to transfer
+CHUNK_SIZE = 100
+
+
 
 def _update_checkpoint(checkpoint):
     """
@@ -38,9 +49,14 @@ def _update_checkpoint(checkpoint):
             writer.writerow({PATH: k, ID: v['_id']})
 
 
+def _chunks(l, n):
+    n = max(1, n)
+    return [l[i:i + n] for i in range(0, len(l), n)]
+
+
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
                          source_s3_bucket=None, destination_s3_bucket=None, progress=tqdm,
-                         copy_file=None, checkpoint=None):
+                         copy_file_fn=None, checkpoint=None):
     """
 
     :param session:
@@ -49,7 +65,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     :param aws_secret_access_key:
     :param source_s3_bucket:
     :param destination_s3_bucket:
-    :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
+    :param progress: show process progress (i.e. tqdm). Default: tqdm
     :return: {'folders': [ created folders ], 'files': [ copied files ] }
     """
 
@@ -61,13 +77,63 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     src_s3_connection = src_s3_session.resource('s3')
     src = src_s3_connection.Bucket(source_s3_bucket)
 
-    entities = {}
-
     logging.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
 
     # Restore state from checkpoint if provided
-    if checkpoint is None:
-        checkpoint = '.checkpoint.csv'
+
+
+    s3_object_list = src.objects.all()
+    num_objects_to_transfer = len(list(s3_object_list))
+    logging.info(str(num_objects_to_transfer) + ' objects found to transfer')
+
+    # Go through list once for folders; tqdm
+    # Go through list second time for files (multiprocessing)
+    with Manager() as manager:
+        entities = manager.dict()
+
+        if checkpoint is None:
+            checkpoint = '.checkpoint.csv'
+
+        _setup_checkpoint(checkpoint, entities)
+
+        logging.info('Creating folders')
+        file_paths = []
+        for s3_object in progress(s3_object_list):
+            if s3_object.key.endswith("/"):
+                # s3_object is a Folder
+                # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
+
+                folder_path = s3_object.key
+                logging.info('Listed S3 folder: ' + folder_path)
+
+                find_or_create_folder(entities, folder_path, project, session, checkpoint)
+            else:
+                file_paths.append(s3_object.key)
+
+        logging.info('Folders created')
+
+        logging.info('Transferring files')
+
+        map_args = _prepare_args(file_paths, entities, project, session, source_s3_bucket, destination_s3_bucket,
+                                 aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint)
+
+        with Pool(POOL_SIZE) as p:
+            p.starmap(find_or_create_file, map_args, CHUNK_SIZE)
+
+        result = {}
+        result.update(entities)
+
+        return result
+
+
+def _prepare_args(file_paths, entities, project, session, source_s3_bucket, destination_s3_bucket,
+                  aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint):
+
+    return ([entities, file_path, project, session, source_s3_bucket, destination_s3_bucket,
+             aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint] for file_path in file_paths)
+
+
+def _setup_checkpoint(checkpoint, entities):
     if os.path.isfile(checkpoint):
         with open(checkpoint, 'r') as f:
             reader = csv.DictReader(f)
@@ -80,99 +146,71 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             writer.writeheader()
 
 
-    s3_object_list = src.objects.all()
-    num_objects_to_transfer = len(list(s3_object_list))
-    logging.info(str(num_objects_to_transfer) + ' objects found to transfer')
-
-
-    # Go through list once for folders; tqdm
-    # Go through list second time for files (multiprocessing)
-    with open(checkpoint if checkpoint is not None else '.checkpoint.csv', 'a') as checkpoint_file:
-        writer = csv.DictWriter(checkpoint_file, fieldnames=FIELDNAMES)
-        for s3_object in tqdm(s3_object_list):
-            if s3_object.key.endswith("/"):
-                # s3_object is a Folder
-                # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
-
-                folder_path = s3_object.key
-                logging.info('Listed S3 folder: ' + folder_path)
-
-                find_or_create_folder(entities, folder_path, project, session, writer)
-            else:
-                # s3_object is a file
-                file_path = s3_object.key
-                logging.info('Listed S3 file: ' + file_path)
-
-                find_or_create_file(entities, file_path, project, session, source_s3_bucket, destination_s3_bucket,
-                                    aws_access_key_id, aws_secret_access_key, copy_file, writer)
-
-
-        logging.info('Transfer completed')
-
-        return entities
-
-
 def find_or_create_file(entities, file_path, project, session, source_s3_bucket, destination_s3_bucket,
-                        aws_access_key_id, aws_secret_access_key, copy_file, checkpoint_writer):
-    if file_path not in entities:
-        logging.info('Creating file: ' + file_path)
+                        aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint):
+    with open(checkpoint, 'a') as checkpoint_file:
+        checkpoint_writer = csv.DictWriter(checkpoint_file, fieldnames=FIELDNAMES)
+        if file_path not in entities:
+            logging.info('Creating file: ' + file_path)
 
-        path_list = file_path.split('/')
+            path_list = file_path.split('/')
 
-        # e.g file_name --> 'test.png'
-        file_name = path_list[-1]
+            # e.g file_name --> 'test.png'
+            file_name = path_list[-1]
 
-        if len(path_list) > 1:
-            parent_folder_path = '/'.join(path_list[:-1]) + '/'
-            logging.info('File parent folder is: ' + parent_folder_path)
-            parent = find_or_create_folder(entities, parent_folder_path, project, session, checkpoint_writer)
+            if len(path_list) > 1:
+                parent_folder_path = '/'.join(path_list[:-1]) + '/'
+                logging.info('File parent folder is: ' + parent_folder_path)
+                parent = find_or_create_folder(entities, parent_folder_path, project, session, checkpoint)
+            else:
+                logging.info('File parent is project')
+                parent = project
+
+            file = copy_file_fn(session, parent=parent, file_key=file_path, file_name=file_name,
+                                source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
+                                aws_access_key_id=aws_access_key_id,
+                                aws_secret_access_key=aws_secret_access_key)
+
+            entities[file_path] = file['_id']
+            logging.info('Recording new file to checkpoing file: ' + file_path)
+            checkpoint_writer.writerow({PATH: file_path, ID: file['_id']})
         else:
-            logging.info('File parent is project')
-            parent = project
-
-        file = copy_file(session, parent=parent, file_key=file_path, file_name=file_name,
-                                        source_bucket=source_s3_bucket, destination_bucket=destination_s3_bucket,
-                                        aws_access_key_id=aws_access_key_id,
-                                        aws_secret_access_key=aws_secret_access_key)
-
-        entities[file_path] = file['_id']
-        logging.info('Recording new file to checkpoing file: ' + file_path )
-        checkpoint_writer.writerow({PATH: file_path, ID: file['_id']})
-    else:
-        logging.info('No need to create file: ' + file_path + '. Found in already created files list.')
+            logging.info('No need to create file: ' + file_path + '. Found in already created files list.')
 
 
-def find_or_create_folder(entities, folder_path, project, session, checkpoint_writer):
-    folder_list = folder_path.split('/')[:-1]  # Drop trailing
+def find_or_create_folder(entities, folder_path, project, session, checkpoint):
+    with open(checkpoint, 'a') as checkpoint_file:
+        checkpoint_writer = csv.DictWriter(checkpoint_file, fieldnames=FIELDNAMES)
+        folder_list = folder_path.split('/')[:-1]  # Drop trailing
 
-    if folder_path not in entities:
+        if folder_path not in entities:
 
-        logging.info('Creating folder: ' + folder_path)
+            logging.info('Creating folder: ' + folder_path)
 
-        # e.g. current_folder --> 'Folder3'
-        current_folder = folder_list[-1]
-        parent_folder_path = '/'.join(folder_list[:-1]) + '/'
+            # e.g. current_folder --> 'Folder3'
+            current_folder = folder_list[-1]
+            parent_folder_path = '/'.join(folder_list[:-1]) + '/'
 
-        # if nested folder
-        if len(folder_list) > 1:
-            logging.info('Folder parent_folder is: ' + parent_folder_path)
-            parent = find_or_create_folder(entities, parent_folder_path, project, session, checkpoint_writer)
+            # if nested folder
+            if len(folder_list) > 1:
+                logging.info('Folder parent_folder is: ' + parent_folder_path)
+                parent = find_or_create_folder(entities, parent_folder_path, project, session, checkpoint)
+            else:
+                logging.info('Folder parent_folder is: project')
+                parent = project
+
+            found_or_created_folder = core.create_folder(session, parent, current_folder,
+                                                         attributes={'original_s3_path': folder_path})
+
+            entities[folder_path] = found_or_created_folder['_id']
+
+            logging.info('Recording new folder to checkpoing file: ' + folder_path)
+            checkpoint_writer.writerow({PATH: folder_path, ID: found_or_created_folder['_id']})
         else:
-            logging.info('Folder parent_folder is: project')
-            parent = project
+            logging.info('No need to create folder: ' + folder_path + '. Found in folder_map')
+            found_or_created_folder = entities[folder_path]
 
-        found_or_created_folder = core.create_folder(session, parent, current_folder,
-                                                     attributes={'original_s3_path': folder_path})
-
-        entities[folder_path] = found_or_created_folder['_id']
-
-        logging.info('Recording new folder to checkpoing file: ' + folder_path )
-        checkpoint_writer.writerow({PATH: folder_path, ID: found_or_created_folder['_id']})
-    else:
-        logging.info('No need to create folder: ' + folder_path + '. Found in folder_map')
-        found_or_created_folder = entities[folder_path]
-
-    return found_or_created_folder
+        return found_or_created_folder
 
 
 def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket=None,
@@ -219,8 +257,8 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
     aws_response = destination_file.copy_from(CopySource=copy_source)
 
     # get version_id from AWS copy response and update revision record with aws version_id
-    revision['attributes']['version'] = aws_response['VersionId']
-    revision_response = session.put(revision['links']['self'], entity=revision)
+    # revision['attributes']['version'] = aws_response['VersionId']
+    revision_response = session.put(revision['links']['update-complete'], entity={})
 
     return revision_response
 
@@ -257,7 +295,7 @@ def main():
                          aws_secret_access_key=aws_secret_access_key,
                          source_s3_bucket=args.source_bucket,
                          destination_s3_bucket='users.ovation.io',
-                         checkpoint='.transfer_checkpoint.json', copy_file=copy_file)
+                         checkpoint='.transfer_checkpoint.json', copy_file_fn=copy_file)
 
 
 if __name__ == '__main__':
