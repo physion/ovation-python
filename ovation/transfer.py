@@ -22,7 +22,7 @@ ID = 'id'
 FIELDNAMES = [PATH, ID]
 
 # Multiprocessing pool size
-POOL_SIZE = 20
+POOL_SIZE = int(os.environ['TRANSFER_POOL_SIZE']) if 'TRANSFER_POOL_SIZE' in os.environ else 20
 
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
