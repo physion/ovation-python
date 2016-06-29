@@ -29,7 +29,7 @@ def should_create_file(create_file, boto_session, guess_content_type):
     session.post.return_value = {'entities': [{'type': 'Revision',
                                                '_id': sentinel.revision_id,
                                                'links': {'self': sentinel.revision_self,
-                                                         'update-complete': sentinel.update_complete},
+                                                         'upload-complete': sentinel.update_complete},
                                                'attributes': {'name': sentinel.file_name,
                                                               'content_type': sentinel.content_type}}],
                                  'aws': [{'aws': {'key': sentinel.aws_key,
