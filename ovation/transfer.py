@@ -67,7 +67,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
         logging.info('Creating folders')
         file_paths = []
-        for s3_object in progress(s3_object_list, desc='Folders', unit=' folders'):
+        for s3_object in progress(s3_object_list, desc='Create folders', unit='key'):
             if s3_object.key.endswith("/"):
                 # s3_object is a Folder
                 # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
@@ -92,7 +92,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             partial_find_or_create_file = functools.partial(find_or_create_file, entities, project, session_token, source_s3_bucket, destination_s3_bucket,
                                                             aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint)
 
-            for r in progress(p.imap_unordered(partial_find_or_create_file, file_paths), desc='Copy objects', total=len(file_paths), unit=' files'):
+            for r in progress(p.imap_unordered(partial_find_or_create_file, file_paths), desc='Copy objects', total=len(file_paths), unit='file'):
                 pass
             # p.starmap(find_or_create_file, map_args, CHUNK_SIZE)
 
