@@ -22,15 +22,11 @@ ID = 'id'
 FIELDNAMES = [PATH, ID]
 
 # Multiprocessing pool size
-POOL_SIZE = 5
+POOL_SIZE = 20
 
 # File chunk size. Each process will receive this number of files to transfer
-CHUNK_SIZE = 100
+CHUNK_SIZE = 10
 
-
-def _chunks(l, n):
-    n = max(1, n)
-    return [l[i:i + n] for i in range(0, len(l), n)]
 
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
@@ -75,7 +71,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
         logging.info('Creating folders')
         file_paths = []
-        for s3_object in progress(s3_object_list, desc='Folders'):
+        for s3_object in progress(s3_object_list, desc='Folders', unit=' folders'):
             if s3_object.key.endswith("/"):
                 # s3_object is a Folder
                 # e.g. s3_object.key --> 'Folder1/Folder2/Folder3/'
@@ -100,7 +96,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             partial_find_or_create_file = functools.partial(find_or_create_file, entities, project, session_token, source_s3_bucket, destination_s3_bucket,
                                                             aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint)
 
-            for r in progress(p.imap_unordered(partial_find_or_create_file, file_paths, CHUNK_SIZE), desc='Copy objects', total=len(file_paths)):
+            for r in progress(p.imap_unordered(partial_find_or_create_file, file_paths, CHUNK_SIZE), desc='Copy objects', total=len(file_paths), unit=' files'):
                 pass
             # p.starmap(find_or_create_file, map_args, CHUNK_SIZE)
 
