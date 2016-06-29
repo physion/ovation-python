@@ -1,39 +1,55 @@
 import six
 from ovation.session import simplify_response
 
-def create_file(session, parent, name):
+
+def create_file(session, parent, name, attributes=None):
     """
     Create a new `File` entity under parent.
 
     :param session: ovation.session.Session
     :param parent: parent Project or Folder (entity dict or ID)
     :param name: File name
+    :param attributes: additional attributes for the file
     :return: created file
     """
 
-    return _create_contents(session, 'File', parent, name)
+    if attributes is None:
+        attributes = {}
+
+    return _create_contents(session, 'File', parent, name, attributes=attributes)
 
 
-def _create_contents(session, entity_type, parent, name):
+def _create_contents(session, entity_type, parent, name, attributes=None):
+    if attributes is None:
+        attributes = {}
+
     if isinstance(parent, six.string_types):
         parent = session.get(session.entity_path('entities', id=parent))
 
-    result = session.post(parent['links']['self'], data={'entities': [{'type': entity_type,
-                                                                  'attributes': {'name': name}}]})
+    attributes.update({'name': name})
+
+    attr = {'type': entity_type,
+            'attributes': attributes}
+
+    result = session.post(parent['links']['self'], data={'entities': [attr]})
     return simplify_response(result['entities'][0])
 
 
-def create_folder(session, parent, name):
+def create_folder(session, parent, name, attributes=None):
     """
     Create a new `Folder` entity under parent.
 
     :param session: ovation.session.Session
     :param parent: parent Project or Folder (entity dict or ID)
     :param name: Folder name
+    :param attributes: additional attributes for the folder
     :return: created folder
     """
 
-    return _create_contents(session, 'Folder', parent, name)
+    if attributes is None:
+        attributes = {}
+
+    return _create_contents(session, 'Folder', parent, name, attributes=attributes)
 
 
 def delete_entity(session, entity):
