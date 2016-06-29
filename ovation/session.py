@@ -69,12 +69,11 @@ def simplify_response(data):
         else:
             result = data
 
-
         if isinstance(result, collections.Mapping):
             if 'type' in result and result['type'] == 'Annotation':
                 return DataDict(result)
 
-            return DataDict(((k,simplify_response(v)) for (k,v) in six.iteritems(result)))
+            return DataDict(((k, simplify_response(v)) for (k, v) in six.iteritems(result)))
         elif isinstance(result, six.string_types):
             return result
         elif isinstance(result, collections.Iterable):
@@ -90,6 +89,7 @@ class Session(object):
     `Session` wraps a `requests.Session` and provides methods for convenient creation of Ovation API paths and URLs.
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
+
     def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1'):
         """
         Creates a new Session

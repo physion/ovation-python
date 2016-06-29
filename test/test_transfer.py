@@ -67,7 +67,7 @@ def should_create_file(create_file, boto_session, guess_content_type):
                                                                        'content_type': sentinel.content_type}}]})
     file_obj.copy_from.assert_called_with(CopySource='{}/{}'.format(sentinel.source_bucket, sentinel.file_key))
     session.put.assert_called_with(sentinel.update_complete,
-                                   entity={})
+                                   entity=None)
 
 
 def mock_copy_file(session, parent=None, file_key=None, file_name=None, source_bucket=None,
@@ -76,10 +76,11 @@ def mock_copy_file(session, parent=None, file_key=None, file_name=None, source_b
 
 
 @istest
+@patch('ovation.transfer._make_session')
 @patch('ovation.core.create_folder')
 @patch('boto3.Session')
 @with_setup(setup, teardown)
-def should_copy_bucket_contents(boto_session, create_folder):
+def should_copy_bucket_contents(boto_session, create_folder, make_session):
     aws_session = Mock()
     s3 = Mock()
     bucket = Mock()
@@ -97,7 +98,11 @@ def should_copy_bucket_contents(boto_session, create_folder):
 
     create_folder.side_effect = [{'_id': sentinel.f1}, {'_id': sentinel.f2}, {'_id': sentinel.f3}]
 
-    r = transfer.copy_bucket_contents(sentinel.ov_session,
+    make_session.return_value = sentinel.ov_session
+
+    session = DataDict({'token': sentinel.ov_session_token})
+
+    r = transfer.copy_bucket_contents(session,
                                       project=sentinel.project,
                                       aws_access_key_id=sentinel.access_key_id,
                                       aws_secret_access_key=sentinel.secret_access_key,
