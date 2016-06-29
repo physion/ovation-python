@@ -24,10 +24,6 @@ FIELDNAMES = [PATH, ID]
 # Multiprocessing pool size
 POOL_SIZE = 20
 
-# File chunk size. Each process will receive this number of files to transfer
-CHUNK_SIZE = 10
-
-
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
                          source_s3_bucket=None, destination_s3_bucket=None, progress=tqdm,
