@@ -70,3 +70,5 @@ MANIFEST
 
 .eggs
 
+
+.transfer_checkpoint.csv
