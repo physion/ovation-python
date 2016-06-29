@@ -25,8 +25,6 @@ POOL_SIZE = 5
 # File chunk size. Each process will receive this number of files to transfer
 CHUNK_SIZE = 100
 
-
-
 def _update_checkpoint(checkpoint):
     """
     Updates a checkpoint file created using dict values to produce a CSV with 'path' and 'id' columns.
@@ -114,7 +112,9 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
         logging.info('Transferring files')
 
-        map_args = _prepare_args(file_paths, entities, project, session, source_s3_bucket, destination_s3_bucket,
+        session_token = session.token
+
+        map_args = _prepare_args(file_paths, entities, project, session_token, source_s3_bucket, destination_s3_bucket,
                                  aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint)
 
         with Pool(POOL_SIZE) as p:
@@ -126,10 +126,10 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
         return result
 
 
-def _prepare_args(file_paths, entities, project, session, source_s3_bucket, destination_s3_bucket,
+def _prepare_args(file_paths, entities, project, session_token, source_s3_bucket, destination_s3_bucket,
                   aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint):
 
-    return ([entities, file_path, project, session, source_s3_bucket, destination_s3_bucket,
+    return ([entities, file_path, project, session_token, source_s3_bucket, destination_s3_bucket,
              aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint] for file_path in file_paths)
 
 
@@ -146,10 +146,12 @@ def _setup_checkpoint(checkpoint, entities):
             writer.writeheader()
 
 
-def find_or_create_file(entities, file_path, project, session, source_s3_bucket, destination_s3_bucket,
+def find_or_create_file(entities, file_path, project, session_token, source_s3_bucket, destination_s3_bucket,
                         aws_access_key_id, aws_secret_access_key, copy_file_fn, checkpoint):
     with open(checkpoint, 'a') as checkpoint_file:
         checkpoint_writer = csv.DictWriter(checkpoint_file, fieldnames=FIELDNAMES)
+        session = Session(session_token)
+
         if file_path not in entities:
             logging.info('Creating file: ' + file_path)
 
@@ -232,13 +234,15 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
     content_type = upload.guess_content_type(file_name)
 
     # create file record
-    new_file = core.create_file(session, parent, file_name)
+    new_file = core.create_file(session, parent, file_name,
+                                                 attributes={'original_s3_path': file_key})
 
     # create revision record
     r = session.post(new_file.links.self,
                      data={'entities': [{'type': 'Revision',
                                          'attributes': {'name': file_name,
                                                         'content_type': content_type}}]})
+
 
     # get key for where to copy exisitng file from create revision resonse
     revision = r['entities'][0]
@@ -258,7 +262,7 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
 
     # get version_id from AWS copy response and update revision record with aws version_id
     # revision['attributes']['version'] = aws_response['VersionId']
-    revision_response = session.put(revision['links']['update-complete'], entity={})
+    revision_response = session.put(revision['links']['upload-complete'])
 
     return revision_response
 
@@ -267,7 +271,7 @@ def main():
     parser = argparse.ArgumentParser(description='Transfer files from S3 to Ovation')
     parser.add_argument('-u', '--user', help='Ovation user email')
     parser.add_argument('-p', '--password', help='Ovation password')
-    parser.add_argument('-t', '--token', help='Ovation user email')
+    parser.add_argument('-t', '--token', help='Ovation user token')
     parser.add_argument('parent', help='Project or Folder UUID that will receive transferred files')
     parser.add_argument('source_bucket', help='Source S3 Bucket')
     parser.add_argument('aws_access_key_id', help='AWS Access Key Id')
@@ -295,7 +299,7 @@ def main():
                          aws_secret_access_key=aws_secret_access_key,
                          source_s3_bucket=args.source_bucket,
                          destination_s3_bucket='users.ovation.io',
-                         checkpoint='.transfer_checkpoint.json', copy_file_fn=copy_file)
+                         checkpoint='.transfer_checkpoint.csv', copy_file_fn=copy_file)
 
 
 if __name__ == '__main__':
