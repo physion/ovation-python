@@ -48,7 +48,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     logging.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
 
-    logging.info('Pool size: ' + POOL_SIZE)
+    logging.info('Pool size: ' + str(POOL_SIZE))
     # Restore state from checkpoint if provided
 
 
