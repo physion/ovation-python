@@ -92,7 +92,7 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     """
 
     if isinstance(parent_file, six.string_types):
-        parent_file = session.get(session.entity_path('file', id=parent_file))
+        parent_file = session.get(session.entity_path('file', entity_id=parent_file))
 
     file_name = os.path.basename(local_path)
     content_type = guess_content_type(file_name)
