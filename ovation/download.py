@@ -19,7 +19,7 @@ def revision_download_info(session, revision):
     """
 
     if isinstance(revision, six.string_types):
-        e = session.get(session.entity_path('entities', id=revision))
+        e = session.get(session.entity_path('entities', entity_id=revision))
         if e.type == 'Revision':
             revision = e
         elif e.type == 'File':

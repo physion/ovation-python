@@ -3,8 +3,11 @@ Connection utilities for the Ovation Python API
 """
 import collections
 import os.path
+
 import requests
+import requests.exceptions
 import six
+import retrying
 
 from six.moves.urllib_parse import urljoin
 
@@ -82,6 +85,15 @@ def simplify_response(data):
         return data
 
 
+MAX_RETRY_DELAY_MS = 2000
+MIN_RETRY_DELAY_MS = 250
+
+
+def _retry_if_http_error(exception):
+    """Return True if we should retry (in this case when it's an HTTPError), False otherwise"""
+    return isinstance(exception, requests.exceptions.HTTPError)
+
+
 class Session(object):
     """
     Represents an authenticated session.
@@ -90,12 +102,13 @@ class Session(object):
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
 
-    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1'):
+    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1', retry=3):
         """
         Creates a new Session
         :param token: Ovation API token
         :param api: API endpoint URL (default https://api.ovation.io)
         :param prefix: API namespace prefix (default '/api/v1')
+        :param retry: number of retries API calls will retry on failure. If 0, no retry.
         :return: Session object
         """
         self.session = requests.Session()
@@ -103,6 +116,7 @@ class Session(object):
         self.token = token
         self.api_base = api
         self.prefix = prefix
+        self.retry = retry if retry is not None else 0
 
         class BearerAuth(object):
             def __init__(self, token):
@@ -131,23 +145,34 @@ class Session(object):
         return urljoin(self.api_base, path)
 
     @staticmethod
-    def entity_path(type='entities', id=None):
-        type = type.lower()
+    def entity_path(resource='entities', entity_id=None):
+        resource = resource.lower()
 
-        if not type.endswith('s'):
-            type += 's'
+        if not resource.endswith('s'):
+            resource += 's'
 
-        path = '/' + type + '/'
-        if id:
-            path = path + id
+        path = '/' + resource + '/'
+        if entity_id:
+            path = path + entity_id
 
         return path
 
+    def retry_call(self, m, *args, **kwargs):
+        return retrying.Retrying(stop_max_attempt_number=self.retry+1,
+                                 wait_exponential_multiplier=MIN_RETRY_DELAY_MS, # MS
+                                 wait_exponential_max=MAX_RETRY_DELAY_MS,
+                                 wait_jitter_max=MIN_RETRY_DELAY_MS,
+                                 retry_on_exception=_retry_if_http_error).call(m, *args, **kwargs)
+
     def get(self, path, **kwargs):
-        r = self.session.get(self.make_url(path), **kwargs)
-        r.raise_for_status()
+        r = self.retry_call(self._get, path, **kwargs)
 
         return simplify_response(r.json())
+
+    def _get(self, path, **kwargs):
+        r = self.session.get(self.make_url(path), **kwargs)
+        r.raise_for_status()
+        return r
 
     def put(self, path, entity=None, **kwargs):
         """
@@ -174,23 +199,33 @@ class Session(object):
             data = {}
 
         kwargs['json'] = data
-        r = self.session.put(self.make_url(path), **kwargs)
-        r.raise_for_status()
+        r = self.retry_call(self._put, path, **kwargs)
 
         return simplify_response(r.json())
+
+    def _put(self, path, **kwargs):
+        r = self.session.put(self.make_url(path), **kwargs)
+        r.raise_for_status()
+        return r
 
     def post(self, path, data=None, **kwargs):
         if data is None:
             data = {}
 
         kwargs['json'] = data
-        r = self.session.post(self.make_url(path), **kwargs)
-        r.raise_for_status()
+        r = self.retry_call(self._post, path, **kwargs)
 
         return simplify_response(r.json())
 
+    def _post(self, path, **kwargs):
+        r = self.session.post(self.make_url(path), **kwargs)
+        r.raise_for_status()
+        return r
+
     def delete(self, path, **kwargs):
+        return self.retry_call(self._delete, path, **kwargs)
+
+    def _delete(self, path, **kwargs):
         r = self.session.delete(self.make_url(path), **kwargs)
         r.raise_for_status()
-
         return r
