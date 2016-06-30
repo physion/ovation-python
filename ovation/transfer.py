@@ -14,7 +14,7 @@ from ovation.session import connect
 from ovation.session import Session
 from tqdm import tqdm
 from multiprocessing import Manager
-from multiprocessing.dummy import Pool # Use thread pool
+from multiprocessing.pool import ThreadPool as Pool
 
 # Checkpoing CSV columns
 PATH = 'path'
