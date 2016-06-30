@@ -14,7 +14,7 @@ from ovation.session import connect
 from ovation.session import Session
 from tqdm import tqdm
 from multiprocessing import Manager
-from multiprocessing.dummy import Pool # Use thread pool
+from multiprocessing.pool import ThreadPool as Pool
 
 # Checkpoing CSV columns
 PATH = 'path'
@@ -22,7 +22,7 @@ ID = 'id'
 FIELDNAMES = [PATH, ID]
 
 # Multiprocessing pool size
-POOL_SIZE = int(os.environ['TRANSFER_POOL_SIZE']) if 'TRANSFER_POOL_SIZE' in os.environ else 20
+POOL_SIZE = int(os.environ['TRANSFER_POOL_SIZE']) if 'TRANSFER_POOL_SIZE' in os.environ else 5
 
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
@@ -48,6 +48,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
 
     logging.info('Starting copy from s3 bucket: ' + str(source_s3_bucket))
 
+    logging.info('Pool size: ' + str(POOL_SIZE))
     # Restore state from checkpoint if provided
 
 
