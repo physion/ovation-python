@@ -24,7 +24,7 @@ def _create_contents(session, entity_type, parent, name, attributes=None):
         attributes = {}
 
     if isinstance(parent, six.string_types):
-        parent = session.get(session.entity_path('entities', id=parent))
+        parent = session.get(session.entity_path('entities', entity_id=parent))
 
     attributes.update({'name': name})
 
@@ -68,7 +68,7 @@ def delete_entity(session, entity):
     except TypeError:
         id = entity
 
-    return session.delete(session.entity_path(id=id))
+    return session.delete(session.entity_path(entity_id=id))
 
 
 def undelete_entity(session, entity):
@@ -83,7 +83,7 @@ def undelete_entity(session, entity):
     if isinstance(entity, six.string_types):
         entity = get_entity(session, entity, include_trash=True)
 
-    return session.put(session.entity_path(id=entity['_id']) + "/restore", entity)
+    return session.put(session.entity_path(entity_id=entity['_id']) + "/restore", entity)
 
 
 def get_entity(session, id, include_trash=False):
@@ -96,4 +96,4 @@ def get_entity(session, id, include_trash=False):
     :return: entity Dict
     """
 
-    return session.get(session.entity_path(id=id), params={"trash": str(include_trash).lower()})
+    return session.get(session.entity_path(entity_id=id), params={"trash": str(include_trash).lower()})

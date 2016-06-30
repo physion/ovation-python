@@ -1,3 +1,4 @@
+import requests.exceptions
 from nose.tools import istest, assert_equal
 from six.moves.urllib_parse import urljoin
 from unittest.mock import Mock, sentinel
@@ -42,7 +43,7 @@ def should_make_type_index_url():
 def should_make_type_get_url():
     s = connection.Session(sentinel.token)
 
-    assert_equal(s.entity_path('project', id='123'), '/projects/123')
+    assert_equal(s.entity_path('project', entity_id='123'), '/projects/123')
 
 
 @istest
@@ -163,5 +164,21 @@ def should_proxy_get_requests_session():
 
     s = connection.Session(token, api=api_base)
     s.session.get = Mock(return_value=response)
+
+    assert_equal(s.get(path), sentinel.resp)
+
+
+@istest
+def should_retry_failed_requests():
+    token = 'my-token'
+    api_base = 'https://my.server/'
+    path = '/api/updates/1'
+
+    response = Mock()
+    response.raise_for_status = Mock(return_value=None)
+    response.json = Mock(return_value=sentinel.resp)
+
+    s = connection.Session(token, api=api_base, retry=1)
+    s.session.get = Mock(side_effect=[requests.exceptions.HTTPError(), response])
 
     assert_equal(s.get(path), sentinel.resp)
