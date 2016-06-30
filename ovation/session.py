@@ -90,8 +90,8 @@ MIN_RETRY_DELAY_MS = 250
 
 
 def _retry_if_http_error(exception):
-    """Return True if we should retry (in this case when it's an HTTPError), False otherwise"""
-    return isinstance(exception, requests.exceptions.HTTPError)
+    """Return True if we should retry (in this case when it's an RequestException), False otherwise"""
+    return isinstance(exception, requests.exceptions.RequestException)
 
 
 class Session(object):
