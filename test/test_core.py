@@ -97,6 +97,12 @@ def should_get_entity():
     s.get.return_value = sentinel.result
     s.entity_path.return_value = sentinel.path
 
-    core.get_entity(s, sentinel.id)
+    core.get_entity(s, 'entity-id')
 
     s.get.assert_called_once_with(sentinel.path, params={'trash': "false"})
+
+@istest
+def should_return_existing_entity_dict():
+
+    assert_equal(core.get_entity(sentinel.session, sentinel.entity_dict),
+                 sentinel.entity_dict)

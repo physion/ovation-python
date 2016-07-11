@@ -5,6 +5,7 @@ from ovation.session import simplify_response
 FOLDER_TYPE = 'Folder'
 FILE_TYPE = 'File'
 REVISION_TYPE = 'Revision'
+PROJECT_TYPE = 'Project'
 
 def create_file(session, parent, name, attributes=None):
     """
