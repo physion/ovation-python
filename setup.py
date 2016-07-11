@@ -45,7 +45,8 @@ if not is_conda():
                                   "boto3 >= 1.3.0",
                                   'six >= 1.10.0',
                                   'tqdm >= 4.7.0',
-                                  'retrying >= 1.3.3'
+                                  'retrying >= 1.3.3',
+                                  'texttable >= 0.8.4'
                                   ],
                 test_suite='nose.collector')
 
