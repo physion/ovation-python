@@ -76,19 +76,6 @@ def download_revision(session, revision, output=None, progress=tqdm):
                 f.write(data)
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Download files from Ovation')
-    parser.add_argument('-u', '--user', help='Ovation user email')
-    parser.add_argument('entity_id', help='File or Revision UUID')
-    parser.add_argument('-o', '--output', help='Output directory')
-
-    args = parser.parse_args()
-
-    download_main(user=args.user,
-             entity_id=args.entity_id,
-             output=args.output)
-
-
 def download_main(user=None, entity_id=None, output=None):
     if user is None:
         user = input('Email: ')
@@ -106,5 +93,3 @@ def download_main(user=None, entity_id=None, output=None):
     download_revision(s, entity_id, output=output)
 
 
-if __name__ == '__main__':
-    main()

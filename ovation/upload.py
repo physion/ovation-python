@@ -122,20 +122,8 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     return session.put(revision['links']['upload-complete'], entity=None)
 
 
-def main():
-    parser = argparse.ArgumentParser(description='Upload files to Ovation')
-    parser.add_argument('-u', '--user', help='Ovation user email')
-    parser.add_argument('parent_id', help='Project or Folder UUID')
-    parser.add_argument('paths', nargs='+', help='Paths to local files or directories')
 
-    args = parser.parse_args()
-
-    upload_paths(user=args.user,
-                 project_id=args.parent_id,
-                 paths=args.paths)
-
-
-def upload_paths(user=None, project_id=None, paths=[]):
+def upload_paths(user=None, parent_id=None, paths=[]):
     if user is None:
         user = input('Email: ')
 
@@ -152,10 +140,7 @@ def upload_paths(user=None, project_id=None, paths=[]):
     for p in paths:
         print('Uploading {}'.format(p))
         if os.path.isdir(p):
-            upload_folder(s, project_id, p)
+            upload_folder(s, parent_id, p)
         else:
-            upload_file(s, project_id, p)
+            upload_file(s, parent_id, p)
 
-
-if __name__ == '__main__':
-    main()
