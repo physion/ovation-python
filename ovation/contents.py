@@ -50,28 +50,28 @@ def list_contents_main(args):
         files = contents['files']
         folders = contents['folders']
 
-        revisions = {}
-        with Pool() as pool:
-            for r in tqdm(pool.imap_unordered(functools.partial(_get_head, session), files),
-                          desc='Finding HEAD revisions',
-                          unit=' file',
-                          total=len(files)):
-                revisions[r['file']] = r['revision']
+        # revisions = {}
+        # with Pool() as pool:
+        #     for r in tqdm(pool.imap_unordered(functools.partial(_get_head, session), files),
+        #                   desc='Finding HEAD revisions',
+        #                   unit=' file',
+        #                   total=len(files)):
+        #         revisions[r['file']] = r['revision']
 
 
         table = texttable.Texttable()
         table.set_deco(texttable.Texttable.HEADER)
         table.set_cols_align(['l', 'l', 'l', 'l'])
         # table.set_cols_width([])
-        table.add_rows([['Name', 'Modified', 'ID', 'HEAD']])
+        table.add_rows([['Name', 'Modified', 'ID']])
         for e in sorted(files + folders, key=lambda e: e.attributes.name):
             if e.type == core.FOLDER_TYPE:
                 name = e.attributes.name + "/"
-                head = ''
+                # head = ''
             else:
                 name = e.attributes.name
-                head = revisions[e._id]
+                # head = revisions[e._id]
 
-            table.add_row([name, e.attributes['updated-at'], e._id, head])
+            table.add_row([name, e.attributes['updated-at'], e._id])
 
         print(table.draw())
