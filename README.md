@@ -31,19 +31,34 @@ To create a session, connect using your Ovation user email and password:
 
 You can supply your password as a `password=...` keyword parameter if you're using the Ovation API from a script. But for most cases, you'll want to let the Ovation API prompt you for your password (this works in the Python/IPython terminal or in a Jupyter notebook).
 
+### Listing Projects from the terminal
+
+You can list all of your Projects:
+
+    python -m ovation.cli ls
+    
+### Listing Project or Folder contents from the terminal
+
+You can list the contents of a `Project` or `Folder`:
+
+    python -m ovation.cli ls <project or folder ID>
 
 ### Uploading files from the terminal
 
-Use the `ovation.upload` module to upload files from your local file system to Ovation. Try
+Use the `ovation.cli` module's `upload` command to upload files from your local file system to Ovation. Try
 
-    python -m ovation.upload -h
+    python -m ovation.cli upload -h
 
 for more info.
 
 ### Downloading files from the termainl
 
-Use the `ovation.download` module to download a `Revision` from Ovation to your local file system. Try
+Use the `ovation.cli` module's `download` command to download a `Revision` from Ovation to your local file system. Try
 
-    pythyon -m ovation.download -h
+    python -m ovation.cli download -h
 
 for more info.
+
+If you supply a `Project` or `Folder` ID as the download source, this command will recursively download the contents of the Project or Folder. **Be careful—this may download a lot of data**.
+
+If you supply a `File` ID as the download source, this command will download the most recent version of the file.
