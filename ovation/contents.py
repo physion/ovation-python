@@ -61,7 +61,7 @@ def list_contents_main(args):
 
         table = texttable.Texttable()
         table.set_deco(texttable.Texttable.HEADER)
-        table.set_cols_align(['l', 'l', 'l', 'l'])
+        table.set_cols_align(['l', 'l', 'l'])
         # table.set_cols_width([])
         table.add_rows([['Name', 'Modified', 'ID']])
         for e in sorted(files + folders, key=lambda e: e.attributes.name):
