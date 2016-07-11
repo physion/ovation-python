@@ -123,24 +123,17 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
 
 
 
-def upload_paths(user=None, parent_id=None, paths=[]):
-    if user is None:
-        user = input('Email: ')
-
-    if user is None:
+def upload_paths(args):
+    session = args.session
+    parent_id = args.parent_id
+    paths = args.paths
+    if paths is None:
         return
-
-    if 'OVATION_PASSWORD' in os.environ:
-        password = os.environ['OVATION_PASSWORD']
-    else:
-        password = None
-
-    s = connect(user, password=password)
 
     for p in paths:
         print('Uploading {}'.format(p))
         if os.path.isdir(p):
-            upload_folder(s, parent_id, p)
+            upload_folder(session, parent_id, p)
         else:
-            upload_file(s, parent_id, p)
+            upload_file(session, parent_id, p)
 

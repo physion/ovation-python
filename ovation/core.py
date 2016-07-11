@@ -2,6 +2,10 @@ import six
 from ovation.session import simplify_response
 
 
+FOLDER_TYPE = 'Folder'
+FILE_TYPE = 'File'
+REVISION_TYPE = 'Revision'
+
 def create_file(session, parent, name, attributes=None):
     """
     Create a new `File` entity under parent.
@@ -16,7 +20,7 @@ def create_file(session, parent, name, attributes=None):
     if attributes is None:
         attributes = {}
 
-    return _create_contents(session, 'File', parent, name, attributes=attributes)
+    return _create_contents(session, FILE_TYPE, parent, name, attributes=attributes)
 
 
 def _create_contents(session, entity_type, parent, name, attributes=None):
@@ -49,7 +53,7 @@ def create_folder(session, parent, name, attributes=None):
     if attributes is None:
         attributes = {}
 
-    return _create_contents(session, 'Folder', parent, name, attributes=attributes)
+    return _create_contents(session, FOLDER_TYPE, parent, name, attributes=attributes)
 
 
 def delete_entity(session, entity):
@@ -96,4 +100,16 @@ def get_entity(session, id, include_trash=False):
     :return: entity Dict
     """
 
-    return session.get(session.entity_path(entity_id=id), params={"trash": str(include_trash).lower()})
+    if isinstance(id, six.string_types):
+        return session.get(session.entity_path(entity_id=id), params={"trash": str(include_trash).lower()})
+
+    return id
+
+
+def get_projects(session):
+    """
+    Gets all Projects visible to the authenticated user
+    :param session: ovation.session.Session
+    :return: list of Projects
+    """
+    return session.get(session.entity_path(resource='projects'))
