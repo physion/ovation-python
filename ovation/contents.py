@@ -1,5 +1,6 @@
 import functools
 import texttable
+import logging
 
 import ovation.core as core
 
@@ -7,7 +8,6 @@ from pprint import pprint
 from tqdm import tqdm
 from multiprocessing.pool import ThreadPool as Pool
 
-import pdb
 """
 Walks through the directory from the specified parent yields a 3-tuple of parent entity,
 folders in parent entity and files in parent entity.
@@ -63,6 +63,7 @@ def _get_head_revision(session, file):
     if(headRevisions):
         return headRevisions[0]
     else:
+        logging.warning("No head revisions found for file " + file.attributes.name)
         return None
 
 
