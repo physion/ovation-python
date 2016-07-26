@@ -8,35 +8,42 @@ from pprint import pprint
 from tqdm import tqdm
 from multiprocessing.pool import ThreadPool as Pool
 
-"""
-Walks through the directory from the specified parent yields a 3-tuple of parent entity,
-folders in parent entity and files in parent entity.
-If recurse is set to true, then this function will continue through all sub-folders, otherwise
-it will yeild only the contents of the specified parent.
-:param session: ovation.session.Session
-:param parent: Project or Folder dict or ID
-:yields: 4-tuple of 'parent', 'folders', 'files', and head_revisions
-"""
 def walk(session, parent, recurse=False):
+    """
+    Walks through the directory from the specified parent yields a 5-tuple of
+     'parent_path', 'parent', 'folders', 'files', and head_revisions.
+    If recurse is set to true, then this function will continue through all sub-folders, otherwise
+    it will yield only the contents of the specified parent.
+    :param session: ovation.session.Session
+    :param parent: Project or Folder dict or ID
+    :yields: 5-tuple of 'parent_path', 'parent', 'folders', 'files', and head_revisions
+    """
 
     folders = []
     files = []
     revisions = []
 
+    # if speicified parent param is only a string id, will get entity object,
+    # otherwise will use passed in parent param
+    parent = core.get_entity(session, parent)
+
     entries = get_contents(session, parent)
 
     for file in entries['files']:
         files.append(file)
-        revision = _get_head_revision(session, file)
+        revision = get_head_revision(session, file)
         revisions.append(revision)
 
     for folder in entries['folders']:
         folders.append(folder)
 
-    # Yield
-    yield parent, folders, files, revisions
+    # get parent directory path (e.g. 'project1/folder1')
+    parent_path = get_entity_directory_path(session, parent)
 
-    # Recurse into sub-directories
+    # yield
+    yield parent_path, parent, folders, files, revisions
+
+    # recurse into sub-directories
     if recurse:
         for folder in folders:
             yield from walk(session, folder, recurse)
@@ -58,13 +65,33 @@ def get_contents(session, parent):
     return {'files': session.get(p.relationships.files.related),
             'folders': session.get(p.relationships.folders.related)}
 
-def _get_head_revision(session, file):
+def get_head_revision(session, file):
     headRevisions = session.get(file.links.heads)
     if(headRevisions):
         return headRevisions[0]
     else:
         logging.warning("No head revisions found for file " + file.attributes.name)
         return None
+
+def get_entity_directory_path(session, entity):
+    entity_directory_path = ""
+
+    breadcrumb_list = session.get(session.entity_path(resource="breadcrumbs"), params={"id": entity['_id']})
+
+    if(breadcrumb_list):
+
+        # service returns an array of multiple breadcrumbs
+        # since parents (i.e folders or projects) can only have one breadcrumb, take the first and only one returned
+        first_breadcrumb = breadcrumb_list[0]
+
+        #to print out the path, reverse the list since it puts the project last
+        first_breadcrumb.reverse()
+
+        for crumb in first_breadcrumb:
+            entity_directory_path += crumb['name']  + "/"
+
+    return entity_directory_path
+
 
 
 def _get_head(session, file):
