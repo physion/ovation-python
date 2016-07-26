@@ -22,7 +22,7 @@ def should_walk_path(get_contents, get_head_revision, get_entity_directory_path)
 
     get_entity_directory_path.return_value = project_name + "/"
 
-    project = {'attributes': {'name': 'project1'}}
+    project = {'attributes': {'name': project_name}}
 
     s = Mock(spec=session.Session)
     recurse = False
@@ -31,7 +31,7 @@ def should_walk_path(get_contents, get_head_revision, get_entity_directory_path)
         assert_equal(parent, project)
 
         for folder in folders:
-            assert_equal(folder['attributes']['name'], 'folder1')
+            assert_equal(folder['attributes']['name'], folder_name)
 
         for file in files:
-            assert_equal(file['attributes']['name'], 'file1')
+            assert_equal(file['attributes']['name'], file_name)
