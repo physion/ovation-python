@@ -1,4 +1,3 @@
-import functools
 import texttable
 import logging
 
@@ -8,22 +7,35 @@ from pprint import pprint
 from tqdm import tqdm
 from multiprocessing.pool import ThreadPool as Pool
 
+
 def walk(session, parent, recurse=False):
     """
-    Walks through the directory from the specified parent yields a 5-tuple of
-     'parent_path', 'parent', 'folders', 'files', and head_revisions.
+    Walks through the directory from the specified parent, yielding a 5-tuple of 'parent', 'folders',
+    'files'.
+
     If recurse is set to true, then this function will continue through all sub-folders, otherwise
     it will yield only the contents of the specified parent.
+
+    You can get the breadcrumb path of parent with `get_breadcrumbs`. You can get the HEAD revisions of file(s) with
+    `get_head_revisions`. This example shows how to calculate the total byte size of all head revisions in a directory
+    tree::
+
+        total_bytes = 0
+        for (parent, folders, files) in contents.walk(session, parent):
+            for rev in (get_get_head_revision(session, f) for f in files):
+                total_bytes += rev.attributes.content_length
+
+        print("Total bytes: {}".format(total_bytes)
+
     :param session: ovation.session.Session
     :param parent: Project or Folder dict or ID
-    :yields: 5-tuple of 'parent_path', 'parent', 'folders', 'files', and head_revisions
+    :returns generator of 5-tuple: `(parent, folders, files)`
     """
 
     folders = []
     files = []
-    revisions = []
 
-    # if speicified parent param is only a string id, will get entity object,
+    # if specified parent param is only a string id, will get entity object,
     # otherwise will use passed in parent param
     parent = core.get_entity(session, parent)
 
@@ -31,17 +43,12 @@ def walk(session, parent, recurse=False):
 
     for file in entries['files']:
         files.append(file)
-        revision = get_head_revision(session, file)
-        revisions.append(revision)
 
     for folder in entries['folders']:
         folders.append(folder)
 
-    # get parent directory path (e.g. 'project1/folder1')
-    parent_path = get_entity_directory_path(session, parent)
-
     # yield
-    yield parent_path, parent, folders, files, revisions
+    yield parent, folders, files
 
     # recurse into sub-directories
     if recurse:
@@ -65,6 +72,7 @@ def get_contents(session, parent):
     return {'files': session.get(p.relationships.files.related),
             'folders': session.get(p.relationships.folders.related)}
 
+
 def get_head_revision(session, file):
     """
     Retrieves the head revision of file specified
@@ -76,13 +84,14 @@ def get_head_revision(session, file):
     file = core.get_entity(session, file)
 
     headRevisions = session.get(file.links.heads)
-    if(headRevisions):
+    if (headRevisions):
         return headRevisions[0]
     else:
         logging.warning("No head revisions found for file " + file.attributes.name)
         return None
 
-def get_entity_directory_path(session, entity):
+
+def get_breadcrumbs(session, entity):
     """
     Returns the directory path of the entity (folder or file specified)
     :param session: ovation.session.Session
@@ -93,24 +102,27 @@ def get_entity_directory_path(session, entity):
     entity_directory_path = ""
 
     entity = core.get_entity(session, entity)
+
+    if not entity.type in [core.FILE_TYPE, core.FOLDER_TYPE]:
+        raise ValueError("entity is not a File or Folder")
+
     breadcrumb_list = session.get(session.entity_path(resource="breadcrumbs"), params={"id": entity['_id']})
 
-    if(breadcrumb_list):
+    if (breadcrumb_list):
 
         # service returns an array of multiple breadcrumbs
         # since parents (i.e folders or projects) can only have one breadcrumb, take the first and only one returned
         first_breadcrumb = breadcrumb_list[0]
 
-        #to print out the path, reverse the list since it puts the project last
+        # to print out the path, reverse the list since it puts the project last
         first_breadcrumb.reverse()
 
         for crumb in first_breadcrumb:
             entity_directory_path += crumb['name']
-            if(crumb['type'] == "Folder" or crumb['type'] == "Project"):
+            if (crumb['type'] == "Folder" or crumb['type'] == "Project"):
                 entity_directory_path += "/"
 
     return entity_directory_path
-
 
 
 def _get_head(session, file):
