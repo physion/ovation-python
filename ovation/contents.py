@@ -66,6 +66,15 @@ def get_contents(session, parent):
             'folders': session.get(p.relationships.folders.related)}
 
 def get_head_revision(session, file):
+    """
+    Retrieves the head revision of file specified
+    :param session: ovation.session.Session
+    :param file: File dict or ID
+    :return: Revision dict
+    """
+
+    file = core.get_entity(session, file)
+
     headRevisions = session.get(file.links.heads)
     if(headRevisions):
         return headRevisions[0]
@@ -74,8 +83,16 @@ def get_head_revision(session, file):
         return None
 
 def get_entity_directory_path(session, entity):
+    """
+    Returns the directory path of the entity (folder or file specified)
+    :param session: ovation.session.Session
+    :param entity: File / Folder dict or ID
+    :return: string representing directory path of specified entity (e.g. "project1/folder1/file1.txt")
+    """
+
     entity_directory_path = ""
 
+    entity = core.get_entity(session, entity)
     breadcrumb_list = session.get(session.entity_path(resource="breadcrumbs"), params={"id": entity['_id']})
 
     if(breadcrumb_list):
@@ -88,7 +105,9 @@ def get_entity_directory_path(session, entity):
         first_breadcrumb.reverse()
 
         for crumb in first_breadcrumb:
-            entity_directory_path += crumb['name']  + "/"
+            entity_directory_path += crumb['name']
+            if(crumb['type'] == "Folder" or crumb['type'] == "Project"):
+                entity_directory_path += "/"
 
     return entity_directory_path
 
