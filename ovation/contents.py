@@ -20,12 +20,13 @@ def walk(session, parent, recurse=False):
     `get_head_revisions`. This example shows how to calculate the total byte size of all head revisions in a directory
     tree::
 
-        total_bytes = 0
-        for (parent, folders, files) in contents.walk(session, parent):
-            for rev in (get_get_head_revision(session, f) for f in files):
-                total_bytes += rev.attributes.content_length
+    total_bytes = 0
+    for (parent, folders, files) in contents.walk(session, parent):
+        for f in files:
+            rev = contents.get_head_revision(session, f)
+            total_bytes += rev.attributes.get('content_length', 0)
 
-        print("Total bytes: {}".format(total_bytes)
+    print("Total bytes: {}".format(total_bytes))
 
     :param session: ovation.session.Session
     :param parent: Project or Folder dict or ID
