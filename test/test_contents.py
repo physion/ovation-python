@@ -7,10 +7,10 @@ from unittest.mock import Mock, sentinel, patch
 from nose.tools import istest, assert_equal, set_trace
 
 @istest
-@patch('ovation.contents.get_entity_directory_path')
+@patch('ovation.contents.get_breadcrumbs')
 @patch('ovation.contents.get_head_revision')
 @patch('ovation.contents.get_contents')
-def should_walk_path(get_contents, get_head_revision, get_entity_directory_path):
+def should_walk_path(get_contents, get_head_revision, get_breadcrumbs):
 
     project_name = 'proj1'
     file_name = 'file1'
@@ -20,14 +20,13 @@ def should_walk_path(get_contents, get_head_revision, get_entity_directory_path)
                                  'folders': [{'attributes': {'name': folder_name}}]}
     get_head_revision.return_value = {'attributes': {'name': file_name }}
 
-    get_entity_directory_path.return_value = project_name + "/"
+    get_breadcrumbs.return_value = project_name + "/"
 
     project = {'attributes': {'name': project_name}}
 
     s = Mock(spec=session.Session)
-    recurse = False
 
-    for (parent_path, parent, folders, files, revisions) in contents.walk(s, project):
+    for (parent, folders, files) in contents.walk(s, project):
         assert_equal(parent, project)
 
         for folder in folders:
