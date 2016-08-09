@@ -102,7 +102,7 @@ class Session(object):
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
 
-    def __init__(self, token, api='https://api.ovation.io/', prefix='/api/v1', retry=3):
+    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3):
         """
         Creates a new Session
         :param token: Ovation API token
