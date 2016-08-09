@@ -29,7 +29,7 @@ args = dict(name='ovation',
             author_email='info@ovation.io',
             url='https://ovation.io',
             long_description=DESCRIPTION,
-            packages=['ovation'],
+            packages=['ovation', 'ovation.lab'],
             classifiers=[
           "Development Status :: 4 - Beta",
           "Intended Audience :: Science/Research",
