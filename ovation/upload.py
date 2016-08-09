@@ -1,15 +1,11 @@
 import mimetypes
-import os.path
 import threading
-
 import boto3
 import six
-import argparse
 import os
 
 import ovation.core as core
 
-from ovation.session import connect
 from tqdm import tqdm
 
 
@@ -104,13 +100,17 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     revision = r['entities'][0]
     aws = r['aws'][0]['aws']
 
+    _upload_to_aws(aws, content_type, local_path, progress)
+
+    return session.put(revision['links']['upload-complete'], entity=None)
+
+
+def _upload_to_aws(aws, content_type, local_path, progress):
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
                                 aws_secret_access_key=aws['secret_access_key'],
                                 aws_session_token=aws['session_token'])
     s3 = aws_session.resource('s3')
-
     file_obj = s3.Object(aws['bucket'], aws['key'])
-
     args = {'ContentType': content_type,
             'ServerSideEncryption': 'AES256'}
     if progress and os.path.exists(local_path):
@@ -118,9 +118,6 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
                              Callback=ProgressPercentage(local_path, progress=progress))
     else:
         file_obj.upload_file(local_path, ExtraArgs=args)
-
-    return session.put(revision['links']['upload-complete'], entity=None)
-
 
 
 def upload_paths(args):
