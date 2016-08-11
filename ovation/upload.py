@@ -98,14 +98,14 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
                                          'attributes': {'name': file_name,
                                                         'content_type': content_type}}]})
     revision = r['entities'][0]
-    aws = r['aws'][0]['aws']
+    aws = r['aws'][0]['aws'] # Returns an :aws for each created Revision
 
-    _upload_to_aws(aws, content_type, local_path, progress)
+    upload_to_aws(aws, content_type, local_path, progress)
 
     return session.put(revision['links']['upload-complete'], entity=None)
 
 
-def _upload_to_aws(aws, content_type, local_path, progress):
+def upload_to_aws(aws, content_type, local_path, progress):
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
                                 aws_secret_access_key=aws['secret_access_key'],
                                 aws_session_token=aws['session_token'])
