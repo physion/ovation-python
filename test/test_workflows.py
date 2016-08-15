@@ -13,7 +13,7 @@ def should_create_activity():
 
     s = Mock(spec=Session)
     s.entity_path.return_value = sentinel.workflow_path
-    s.get.return_value = simplify_response({'workflow': workflow})
+    s.get.return_value = simplify_response({'workflow': workflow, 'resources': []})
     s.post.return_value = sentinel.activity
 
     workflows.create_activity(s, workflow_id, label, activity=sentinel.data)
