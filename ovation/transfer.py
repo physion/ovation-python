@@ -146,7 +146,7 @@ def find_or_create_file(entities, project, session_token, source_s3_bucket, dest
                                 aws_access_key_id=aws_access_key_id,
                                 aws_secret_access_key=aws_secret_access_key)
 
-            if file is not None::
+            if file is not None:
                 entities[file_path] = file['_id']
                 logging.info('Recording new file to checkpoing file: ' + file_path)
                 checkpoint_writer.writerow({PATH: file_path, ID: file['_id']})
