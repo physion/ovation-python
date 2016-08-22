@@ -160,7 +160,6 @@ def list_contents_main(args):
         #                   total=len(files)):
         #         revisions[r['file']] = r['revision']
 
-
         table = texttable.Texttable()
         table.set_deco(texttable.Texttable.HEADER)
         table.set_cols_align(['l', 'l', 'l'])

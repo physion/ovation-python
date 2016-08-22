@@ -3,14 +3,12 @@ Connection utilities for the Ovation Python API
 """
 import collections
 import os.path
-
 import requests
 import requests.exceptions
 import six
 import retrying
 
 from six.moves.urllib_parse import urljoin
-
 from getpass import getpass
 
 
@@ -59,7 +57,7 @@ def connect(email, password=None, api='https://api.ovation.io', token='services/
     return Session(token, api=api)
 
 
-def simplify_response(data):
+def simplify_response(data, hoist_singleton=True):
     """
     Simplifies the response from Ovation REST API for easier use in Python
 
@@ -67,7 +65,7 @@ def simplify_response(data):
     :return: Pythonified response
     """
     try:
-        if len(data) == 1:
+        if len(data) == 1 and hoist_singleton:
             result = list(six.itervalues(data)).pop()
         else:
             result = data
@@ -76,7 +74,7 @@ def simplify_response(data):
             if 'type' in result and result['type'] == 'Annotation':
                 return DataDict(result)
 
-            return DataDict(((k, simplify_response(v)) for (k, v) in six.iteritems(result)))
+            return DataDict(((k, simplify_response(v, hoist_singleton=False)) for (k, v) in six.iteritems(result)))
         elif isinstance(result, six.string_types):
             return result
         elif isinstance(result, collections.Iterable):
@@ -153,7 +151,7 @@ class Session(object):
 
         path = '/' + resource + '/'
         if entity_id:
-            path = path + entity_id
+            path = path + str(entity_id)
 
         return path
 

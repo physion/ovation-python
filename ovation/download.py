@@ -11,6 +11,7 @@ from six.moves.urllib_parse import urlsplit
 from pprint import pprint
 from multiprocessing.pool import ThreadPool as Pool
 
+DEFAULT_CHUNK_SIZE = 100*1024
 
 def revision_download_info(session, revision):
     """
@@ -69,13 +70,13 @@ def download_revision(session, revision, output=None, progress=tqdm):
 
     with open(dest, "wb") as f:
         if progress:
-            for data in progress(response.iter_content(),
+            for data in progress(response.iter_content(chunk_size=DEFAULT_CHUNK_SIZE),
                                  unit='B',
                                  unit_scale=True,
                                  miniters=1):
                 f.write(data)
         else:
-            for data in response.iter_content():
+            for data in response.iter_content(chunk_size=DEFAULT_CHUNK_SIZE):
                 f.write(data)
 
 
