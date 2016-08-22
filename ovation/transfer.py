@@ -146,9 +146,15 @@ def find_or_create_file(entities, project, session_token, source_s3_bucket, dest
                                 aws_access_key_id=aws_access_key_id,
                                 aws_secret_access_key=aws_secret_access_key)
 
-            entities[file_path] = file['_id']
-            logging.info('Recording new file to checkpoing file: ' + file_path)
-            checkpoint_writer.writerow({PATH: file_path, ID: file['_id']})
+            if file is not None:
+                entities[file_path] = file['_id']
+                logging.info('Recording new file to checkpoing file: ' + file_path)
+                checkpoint_writer.writerow({PATH: file_path, ID: file['_id']})
+            else:
+                logging.info('Recording copy fail to checkpoing file: ' + file_path)
+                checkpoint_writer.writerow({PATH: file_path, ID: "File copy failed"})
+
+
         else:
             logging.info('No need to create file: ' + file_path + '. Found in already created files list.')
 
@@ -235,13 +241,18 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
     s3 = aws_session.resource('s3')
     destination_file = s3.Object(destination_bucket, destination_s3_key)
     copy_source = "{0}/{1}".format(source_bucket, file_key)
-    aws_response = destination_file.copy_from(CopySource=copy_source)
 
-    # get version_id from AWS copy response and update revision record with aws version_id
-    # revision['attributes']['version'] = aws_response['VersionId']
-    revision_response = session.put(revision['links']['upload-complete'], entity=None)
+    try:
+        aws_response = destination_file.copy_from(CopySource=copy_source)
 
-    return revision_response
+        # get version_id from AWS copy response and update revision record with aws version_id
+        # revision['attributes']['version'] = aws_response['VersionId']
+        revision_response = session.put(revision['links']['upload-complete'], entity=None)
+
+        return revision_response
+    except Exception as e:
+        logging.error(e, exc_info=True)
+        return None
 
 
 def main():
