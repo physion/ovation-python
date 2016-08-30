@@ -137,7 +137,7 @@ def list_contents_main(args):
 
     if parent_id is None or parent_id == '':
 
-        table = texttable.Texttable()
+        table = texttable.Texttable(max_width=0)
         # table.set_deco(texttable.Texttable.HEADER)
         table.set_cols_align(["l", "l"])
         table.add_rows([['Name', 'ID']])
@@ -152,15 +152,7 @@ def list_contents_main(args):
         files = contents['files']
         folders = contents['folders']
 
-        # revisions = {}
-        # with Pool() as pool:
-        #     for r in tqdm(pool.imap_unordered(functools.partial(_get_head, session), files),
-        #                   desc='Finding HEAD revisions',
-        #                   unit=' file',
-        #                   total=len(files)):
-        #         revisions[r['file']] = r['revision']
-
-        table = texttable.Texttable()
+        table = texttable.Texttable(max_width=0)
         table.set_deco(texttable.Texttable.HEADER)
         table.set_cols_align(['l', 'l', 'l'])
         # table.set_cols_width([])
