@@ -31,14 +31,18 @@ def create_activity(session, workflow_id, activity_label, activity=None,
     workflow = session.get(session.entity_path('workflows', workflow_id)).workflow
     activity_path = workflow.relationships[activity_label].self
 
-    activity = session.post(activity_path, data=activity)
+    if len(resources) > 0 or len(resource_groups) > 0:
+        activity['complete'] = False
+
+    activity = session.post(activity_path, data={'activity': activity}).activity
 
     for (label, paths) in six.iteritems(resources):
         for local_path in paths:
-            upload.upload_resource(session, activity.uuid, local_path, label=label, progress=progress)
+            upload.upload_resource(session, activity['uuid'], local_path, label=label, progress=progress)
 
     for (label, paths) in six.iteritems(resource_groups):
         for local_path in paths:
             upload.upload_resource_group(session, activity, local_path, label=label, progress=progress)
 
     return activity
+
