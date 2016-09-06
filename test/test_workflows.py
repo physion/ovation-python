@@ -21,7 +21,7 @@ def should_create_activity():
 
     s.entity_path.assert_called_with('workflows', workflow_id)
     s.get.assert_called_with(sentinel.workflow_path)
-    s.post.assert_called_with(sentinel.activity_url, data=sentinel.data)
+    s.post.assert_called_with(sentinel.activity_url, data={'activity': sentinel.data})
 
 
 @istest
@@ -42,5 +42,5 @@ def should_create_activity_with_resources(upload):
 
     s.entity_path.assert_called_with('workflows', workflow_id)
     s.get.assert_called_with(sentinel.workflow_path)
-    s.post.assert_called_with(sentinel.activity_url, data={'complete': False})
+    s.post.assert_called_with(sentinel.activity_url, data={'activity': {'complete': False}})
     upload.assert_called_with(s, uuid, 'foo.txt', label='foo', progress=tqdm)

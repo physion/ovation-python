@@ -34,7 +34,7 @@ def create_activity(session, workflow_id, activity_label, activity=None,
     if len(resources) > 0 or len(resource_groups) > 0:
         activity['complete'] = False
 
-    activity = session.post(activity_path, data=activity)
+    activity = session.post(activity_path, data={'activity': activity})
 
     for (label, paths) in six.iteritems(resources):
         for local_path in paths:
