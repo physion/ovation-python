@@ -15,7 +15,7 @@ def should_create_activity():
     s = Mock(spec=Session)
     s.entity_path.return_value = sentinel.workflow_path
     s.get.return_value = simplify_response({'workflow': workflow, 'resources': []})
-    s.post.return_value = sentinel.activity
+    s.post.return_value = DataDict({'activity': sentinel.activity})
 
     workflows.create_activity(s, workflow_id, label, activity=sentinel.data)
 
@@ -35,7 +35,7 @@ def should_create_activity_with_resources(upload):
     s.entity_path.return_value = sentinel.workflow_path
     s.get.return_value = simplify_response({'workflow': workflow, 'resources': []})
     uuid = 'activity-uuid'
-    s.post.return_value = DataDict({'uuid': uuid})
+    s.post.return_value = DataDict({'activity': {'uuid': uuid}})
 
     activity = {}
     workflows.create_activity(s, workflow_id, label, activity=activity, resources={'foo': ['foo.txt']})
