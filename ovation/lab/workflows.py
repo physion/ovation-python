@@ -45,3 +45,4 @@ def create_activity(session, workflow_id, activity_label, activity=None,
             upload.upload_resource_group(session, activity, local_path, label=label, progress=progress)
 
     return activity
+
