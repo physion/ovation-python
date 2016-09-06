@@ -30,15 +30,3 @@ def download_resources(session,
         ovation.download.download_url(r.read_url, output=output, progress=progress)
 
 
-def download_resource_groups(session,
-                             workflow,
-                             activity_label,
-                             resource_group_name, output=None, progress=tqdm):
-    activity = session.get(workflow.relationships[activity_label].related)
-
-    # Find the activity resource groups with the given name
-    grps = [r for r in activity.activity.resource_groups if r.label == resource_group_name]
-
-    for r in grps:
-        ovation.download.download_url(r.read_url, output=output, progress=progress)
-
