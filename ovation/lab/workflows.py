@@ -31,6 +31,9 @@ def create_activity(session, workflow_id, activity_label, activity=None,
     workflow = session.get(session.entity_path('workflows', workflow_id)).workflow
     activity_path = workflow.relationships[activity_label].self
 
+    if len(resources) > 0 or len(resource_groups) > 0:
+        activity['complete'] = False
+
     activity = session.post(activity_path, data=activity)
 
     for (label, paths) in six.iteritems(resources):
