@@ -75,7 +75,7 @@ def download_url(url, output=None, progress=tqdm):
     with open(dest, "wb") as f:
         if progress:
             for data in progress(response.iter_content(chunk_size=DEFAULT_CHUNK_SIZE),
-                                 unit='B',
+                                 unit='MB',
                                  unit_scale=True,
                                  miniters=1):
                 f.write(data)
