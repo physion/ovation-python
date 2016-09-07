@@ -34,7 +34,6 @@ def upload_resource(session, entity_id, local_path, label=None, resource_group=N
     file_name = os.path.basename(local_path)
     content_type = upload.guess_content_type(file_name)
 
-
     data = {'resource': {'entity_id': entity_id,
                          'path': file_name}}
     if label:
@@ -48,7 +47,12 @@ def upload_resource(session, entity_id, local_path, label=None, resource_group=N
 
     upload.upload_to_aws(aws, content_type, local_path, progress)
 
-    return r
+    metadata = session.get(session.entity_path('resources', r.id) + "/metadata")
+
+    r.version = metadata.version_id
+    r.type = 'resource'
+
+    return session.put(session.entity_path('resources', r.id), entity=r)
 
 
 def upload_resource_group(session, activity, local_directory_path, label=None, progress=tqdm):
@@ -81,6 +85,5 @@ def upload_resource_group(session, activity, local_directory_path, label=None, p
             path = os.path.join(root, f)
 
             upload_resource(session, activity, path, label=label, resource_group=resource_group, progress=progress)
-
 
     return root_group
