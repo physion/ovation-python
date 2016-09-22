@@ -100,9 +100,12 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     revision = r['entities'][0]
     aws = r['aws'][0]['aws'] # Returns an :aws for each created Revision
 
-    upload_to_aws(aws, content_type, local_path, progress)
-
-    return session.put(revision['links']['upload-complete'], entity=None)
+    try:
+        upload_to_aws(aws, content_type, local_path, progress)
+    except:
+        session.put(revision['links']['upload-failed'], entity=None)
+    finally:
+        return session.put(revision['links']['upload-complete'], entity=None)
 
 
 def upload_to_aws(aws, content_type, local_path, progress):
