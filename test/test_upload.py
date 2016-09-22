@@ -120,7 +120,7 @@ def should_set_multipart_chunk_size(boto_session, getsize):
 
 @istest
 def calculates_chunk_size_for_large_file():
-    nbytes = 100 * 1000 * upload.MB
+    nbytes = 180 * upload.GB
     cs = upload.multipart_chunksize(nbytes)
     assert_equal(cs, math.ceil(nbytes/upload.MAX_PARTS))
 
