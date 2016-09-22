@@ -87,3 +87,20 @@ def upload_resource_group(session, activity, local_directory_path, label=None, p
             upload_resource(session, activity, path, label=label, resource_group=resource_group, progress=progress)
 
     return root_group
+
+
+def upload_resources(session, activity, resources, progress=tqdm):
+    """
+    Uploads a resources collection to an activity.
+
+    :param session:  ovation.session.Session
+    :param activity: activity ID or dict
+    :param resources: local path(s) to activity Resources (by label)
+    :return:
+    """
+
+    activity = core.get_entity(activity)
+
+    for (label, paths) in six.iteritems(resources):
+        for local_path in paths:
+            upload.upload_resource(session, activity.uuid, local_path, label=label, progress=progress)
