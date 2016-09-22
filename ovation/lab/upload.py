@@ -103,4 +103,4 @@ def upload_resources(session, activity, resources, progress=tqdm):
 
     for (label, paths) in six.iteritems(resources):
         for local_path in paths:
-            upload.upload_resource(session, activity.uuid, local_path, label=label, progress=progress)
+            upload.upload_resource(session, activity, local_path, label=label, progress=progress)
