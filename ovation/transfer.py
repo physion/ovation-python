@@ -24,10 +24,12 @@ FIELDNAMES = [PATH, ID]
 # Multiprocessing pool size
 POOL_SIZE = int(os.environ['TRANSFER_POOL_SIZE']) if 'TRANSFER_POOL_SIZE' in os.environ else 5
 
+# Chunk size to use when doing multi part copy
+COPY_CHUNK_SIZE = 50 * math.pow(2.0, 20.0) # 50 * 1MB
 
 def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secret_access_key=None,
                          source_s3_bucket=None, destination_s3_bucket=None, progress=tqdm,
-                         copy_file_fn=None, checkpoint=None):
+                         copy_file_fn=None, checkpoint=None, specific_key_list=None):
     """
 
     :param session:
@@ -37,6 +39,7 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     :param source_s3_bucket:
     :param destination_s3_bucket:
     :param progress: show process progress (i.e. tqdm). Default: tqdm
+    :param specific_key_list: (optional) specific list of s3 keys [{key: 'val'}] to copy from source bucket
     :return: {'folders': [ created folders ], 'files': [ copied files ] }
     """
 
@@ -51,8 +54,12 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
     logging.info('Pool size: ' + str(POOL_SIZE))
     # Restore state from checkpoint if provided
 
+    # if specified keys are provided, just iterate those specific keys
+    if specific_key_list
+        s3_object_list = _create_specified_key_list(specific_key_list)
+    else
+        s3_object_list = src.objects.all()
 
-    s3_object_list = src.objects.all()
     num_objects_to_transfer = len(list(s3_object_list))
     logging.info(str(num_objects_to_transfer) + ' objects found to transfer')
 
@@ -98,6 +105,17 @@ def copy_bucket_contents(session, project=None, aws_access_key_id=None, aws_secr
             # p.starmap(find_or_create_file, map_args, CHUNK_SIZE)
 
         return dict(entities)
+
+
+def _create_specified_key_list(comma_delimited_keys):
+    s3_keys = []
+
+    key_list = comma_delimited_keys.split(',')
+    for key in key_list
+        key_dict = {'key': key}
+        s3_keys.append(key_dict)
+
+    return s3_keys
 
 
 def _prepare_args(file_paths, entities, project, session_token, source_s3_bucket, destination_s3_bucket,
@@ -239,11 +257,22 @@ def copy_file(session, parent=None, file_key=None, file_name=None, source_bucket
                                 aws_secret_access_key=aws_secret_access_key)
 
     s3 = aws_session.resource('s3')
-    destination_file = s3.Object(destination_bucket, destination_s3_key)
-    copy_source = "{0}/{1}".format(source_bucket, file_key)
 
     try:
-        aws_response = destination_file.copy_from(CopySource=copy_source)
+        mp = destination_bucket.initiate_multipart_upload(destination_s3_key, reduced_redundancy=True)
+
+        bytePosition = 0
+        i = 1
+        while bytePosition < objectSize:
+            lastbyte = bytePosition + COPY_CHUNK_SIZE -1
+            if lastbyte >= objectSize:
+                lastbyte = objectSize - 1
+            logging.info("mp.copy_part_from_key part %d (%d %d)" % (i,bytePosition,lastbyte))
+            mp.copy_part_from_key(source_bucket, file_key, i, int(bytePosition),int(lastbyte))
+            i = i+1
+            bytePosition += COPY_CHUNK_SIZE
+
+        mp.complete_upload()
 
         # get version_id from AWS copy response and update revision record with aws version_id
         # revision['attributes']['version'] = aws_response['VersionId']
