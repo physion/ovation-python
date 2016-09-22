@@ -1,16 +1,19 @@
 import copy
+import math
+import boto3
 from unittest.mock import Mock, sentinel, patch, ANY
 
 from nose.tools import istest, assert_equal
 
 import ovation.session
-import ovation.upload as revisions
+import ovation.upload as upload
 
 from boto3.s3.transfer import TransferConfig
 
 @istest
+@patch('os.path.getsize')
 @patch('boto3.Session')
-def should_create_revision(boto_session):
+def should_create_revision(boto_session, getsize):
     file = {'type': 'File',
             'links': {'self': sentinel.self}}
     path = '/local/path/file.txt'
@@ -18,6 +21,8 @@ def should_create_revision(boto_session):
            'type': 'Revision',
            'attributes': {'url': sentinel.url},
            'links': {'upload-complete': sentinel.upload_complete}}
+
+    getsize.return_value = 100
 
     s = Mock(spec=ovation.session.Session)
 
@@ -45,7 +50,7 @@ def should_create_revision(boto_session):
     s.put = Mock(return_value=sentinel.result)
 
     # Act
-    result = revisions.upload_revision(s, file, path)
+    result = upload.upload_revision(s, file, path)
 
     # Assert
     boto_session.assert_called_with(aws_access_key_id=sentinel.access_key,
@@ -65,9 +70,9 @@ def should_create_revision(boto_session):
 
 
 @istest
-@patch('ovation.upload._chunk_size')
+@patch('os.path.getsize')
 @patch('boto3.Session')
-def should_set_multipart_chunk_size(boto_session, _chunk_size):
+def should_set_multipart_chunk_size(boto_session, getsize):
     file = {'type': 'File',
             'links': {'self': sentinel.self}}
     path = '/local/path/file.txt'
@@ -75,6 +80,8 @@ def should_set_multipart_chunk_size(boto_session, _chunk_size):
            'type': 'Revision',
            'attributes': {'url': sentinel.url},
            'links': {'upload-complete': sentinel.upload_complete}}
+
+    getsize.return_value = sentinel.file_size
 
     s = Mock(spec=ovation.session.Session)
 
@@ -92,7 +99,7 @@ def should_set_multipart_chunk_size(boto_session, _chunk_size):
     file_obj.upload_file = Mock()
     file_obj.version_id = sentinel.version
 
-    _chunk_size.return_value = sentinel.chunk_size
+    _chunk_size = Mock(return_value=sentinel.chunk_size)
 
     s.post = Mock(return_value={'entities': [rev],
                                 'aws': [{'aws': dict(access_key_id=sentinel.access_key,
@@ -104,9 +111,27 @@ def should_set_multipart_chunk_size(boto_session, _chunk_size):
     s.put = Mock(return_value=sentinel.result)
 
     # Act
-    revisions.upload_revision(s, file, path)
+    upload.upload_revision(s, file, path, chunk_size=_chunk_size)
 
     # Assert
     call = file_obj.upload_file.call_args_list[0]
     assert_equal(call[1]['Config'].multipart_chunksize, sentinel.chunk_size)
+
+
+@istest
+def calculates_chunk_size_for_large_file():
+    nbytes = 100 * 1000 * upload.MB
+    cs = upload.multipart_chunksize(nbytes)
+    assert_equal(cs, math.ceil(nbytes/upload.MAX_PARTS))
+
+@istest
+def calculates_chunk_size_for_small_file():
+    nbytes = 1000
+    cs = upload.multipart_chunksize(nbytes)
+
+    assert_equal(cs, 8 * upload.MB)
+
+@istest
+def MB_is_mega():
+    assert_equal(upload.MB, boto3.s3.transfer.MB)
 
