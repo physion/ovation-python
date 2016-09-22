@@ -3,9 +3,11 @@ import threading
 import boto3
 import six
 import os
+import math
 
 import ovation.core as core
 
+from boto3.s3.transfer import TransferConfig
 from tqdm import tqdm
 
 
@@ -54,6 +56,7 @@ def upload_folder(session, parent, directory_path, progress=tqdm):
 
             upload_revision(session, file, path, progress=progress)
 
+
 def upload_file(session, parent, file_path, progress=tqdm):
     """
     Upload a file to Ovation
@@ -76,7 +79,25 @@ def guess_content_type(file_name):
 
     return content_type
 
-def upload_revision(session, parent_file, local_path, progress=tqdm):
+
+MAX_PARTS = 10000
+MB = boto3.s3.transfer.MB
+GB = MB * 1024
+
+
+def multipart_chunksize(n_bytes):
+    """
+    Calculates the correct chunk size for a file of n_bytes
+    :param n_bytes: file size (bytes)
+    :return: multipart chunk size (bytes)
+    """
+
+    chunk_size = math.ceil(n_bytes / MAX_PARTS)
+
+    return max(chunk_size, 8 * MB)
+
+
+def upload_revision(session, parent_file, local_path, progress=tqdm, chunk_size=multipart_chunksize):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -98,14 +119,17 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
                                          'attributes': {'name': file_name,
                                                         'content_type': content_type}}]})
     revision = r['entities'][0]
-    aws = r['aws'][0]['aws'] # Returns an :aws for each created Revision
+    aws = r['aws'][0]['aws']  # Returns an :aws for each created Revision
 
-    upload_to_aws(aws, content_type, local_path, progress)
+    try:
+        upload_to_aws(aws, content_type, local_path, progress, chunk_size=chunk_size)
+    except Error as err:
+        session.put(revision['links']['upload-failed'], entity=None)
+    finally:
+        return session.put(revision['links']['upload-complete'], entity=None)
 
-    return session.put(revision['links']['upload-complete'], entity=None)
 
-
-def upload_to_aws(aws, content_type, local_path, progress):
+def upload_to_aws(aws, content_type, local_path, progress, chunk_size=multipart_chunksize):
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
                                 aws_secret_access_key=aws['secret_access_key'],
                                 aws_session_token=aws['session_token'])
@@ -113,11 +137,17 @@ def upload_to_aws(aws, content_type, local_path, progress):
     file_obj = s3.Object(aws['bucket'], aws['key'])
     args = {'ContentType': content_type,
             'ServerSideEncryption': 'AES256'}
+
+    transfer_config = TransferConfig(multipart_chunksize=chunk_size(os.path.getsize(local_path)))
+
     if progress and os.path.exists(local_path):
         file_obj.upload_file(local_path, ExtraArgs=args,
-                             Callback=ProgressPercentage(local_path, progress=progress))
+                             Callback=ProgressPercentage(local_path, progress=progress),
+                             Config=transfer_config)
     else:
-        file_obj.upload_file(local_path, ExtraArgs=args)
+        file_obj.upload_file(local_path,
+                             ExtraArgs=args,
+                             Config=transfer_config)
 
 
 def upload_paths(args):
@@ -133,4 +163,3 @@ def upload_paths(args):
             upload_folder(session, parent_id, p)
         else:
             upload_file(session, parent_id, p)
-
