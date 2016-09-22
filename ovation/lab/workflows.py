@@ -49,3 +49,6 @@ def create_activity(session, workflow_id, activity_label, activity=None,
 
     return activity
 
+
+def get_activity(session, workflow, label):
+    return session.get(workflow.relationships[label].related).activity
