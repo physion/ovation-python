@@ -82,6 +82,7 @@ def guess_content_type(file_name):
 
 MAX_PARTS = 10000
 MB = boto3.s3.transfer.MB
+GB = MB * 1024
 
 
 def multipart_chunksize(n_bytes):
@@ -91,7 +92,7 @@ def multipart_chunksize(n_bytes):
     :return: multipart chunk size (bytes)
     """
 
-    chunk_size = int(math.floor(n_bytes / MAX_PARTS))
+    chunk_size = math.ceil(n_bytes / MAX_PARTS)
 
     return max(chunk_size, 8 * MB)
 
