@@ -6,6 +6,7 @@ import os
 
 import ovation.core as core
 
+from boto3.s3.transfer import TransferConfig
 from tqdm import tqdm
 
 
@@ -107,6 +108,8 @@ def upload_revision(session, parent_file, local_path, progress=tqdm):
     finally:
         return session.put(revision['links']['upload-complete'], entity=None)
 
+def _chunk_size(local_path):
+    return 8 * boto3.s3.transfer.MB
 
 def upload_to_aws(aws, content_type, local_path, progress):
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
@@ -116,11 +119,17 @@ def upload_to_aws(aws, content_type, local_path, progress):
     file_obj = s3.Object(aws['bucket'], aws['key'])
     args = {'ContentType': content_type,
             'ServerSideEncryption': 'AES256'}
+
+    transfer_config = TransferConfig(multipart_chunksize=_chunk_size(local_path))
+
     if progress and os.path.exists(local_path):
         file_obj.upload_file(local_path, ExtraArgs=args,
-                             Callback=ProgressPercentage(local_path, progress=progress))
+                             Callback=ProgressPercentage(local_path, progress=progress),
+                             Config=transfer_config)
     else:
-        file_obj.upload_file(local_path, ExtraArgs=args)
+        file_obj.upload_file(local_path,
+                             ExtraArgs=args,
+                             Config=transfer_config)
 
 
 def upload_paths(args):
