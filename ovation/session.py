@@ -12,6 +12,8 @@ import json
 from six.moves.urllib_parse import urljoin
 from getpass import getpass
 
+DEFAULT_HOST = 'https://api.ovation.io'
+
 
 class DataDict(dict):
     def __init__(self, *args, **kw):
@@ -22,18 +24,19 @@ class DataDict(dict):
 CREDENTIALS_PATH = "~/.ovation/credentials.json"
 
 
-def read_saved_token(email, credentials_path=CREDENTIALS_PATH):
+def read_saved_token(email, host=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH):
     path = os.path.expanduser(credentials_path)
     if os.path.exists(path):
         with open(path, 'r') as f:
             creds = json.load(f)
-            if email in creds:
-                return creds[email]
+            if host in creds:
+                if email in creds[host]:
+                    return creds[host][email]
 
     return None
 
 
-def connect(email, password=None, api='https://api.ovation.io', token='services/token'):
+def connect(email, password=None, api=DEFAULT_HOST, token='services/token'):
     """Creates a new Session.
     
     Arguments
@@ -51,7 +54,7 @@ def connect(email, password=None, api='https://api.ovation.io', token='services/
 
     """
 
-    saved_token = read_saved_token(email)
+    saved_token = read_saved_token(email, host=api)
     if saved_token:
         return Session(saved_token, api=api)
 
