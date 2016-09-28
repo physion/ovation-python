@@ -4,6 +4,7 @@ import functools
 import requests
 import six
 import logging
+import retrying
 
 import ovation.core as core
 import ovation.contents as contents
@@ -53,6 +54,7 @@ def revision_download_info(session, file_or_revision):
     return r.json()
 
 
+@retrying.retry(stop_max_attempt_number=3)
 def download_revision(session, revision, output=None, progress=tqdm):
     """
     Downloads a Revision to the local file system. If output is provided, file is downloaded
@@ -67,14 +69,10 @@ def download_revision(session, revision, output=None, progress=tqdm):
     :return: file path
     """
 
-    try:
-        info = revision_download_info(session, revision)
-        url = info['url']
+    info = revision_download_info(session, revision)
+    url = info['url']
 
-        download_url(url, progress=progress, output=output)
-    except DownloadException as e:
-        logging.error("Download error: {}".format(e))
-
+    download_url(url, progress=progress, output=output)
 
 
 def download_url(url, output=None, progress=tqdm):
@@ -98,7 +96,10 @@ def download_url(url, output=None, progress=tqdm):
 
 
 def _download_revision_path(session, revision_path, progress=tqdm):
-    return download_revision(session, revision_path[1], output=revision_path[0], progress=progress)
+    try:
+        return download_revision(session, revision_path[1], output=revision_path[0], progress=progress)
+    except DownloadException as e:
+        logging.error("Download error: {}".format(e))
 
 
 def download_folder(session, folder, output=None, progress=tqdm):
