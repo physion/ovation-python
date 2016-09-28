@@ -7,6 +7,7 @@ import requests
 import requests.exceptions
 import six
 import retrying
+import json
 
 from six.moves.urllib_parse import urljoin
 from getpass import getpass
@@ -18,6 +19,20 @@ class DataDict(dict):
         self.__dict__ = self
 
 
+CREDENTIALS_PATH = "~/.ovation/credentials.json"
+
+
+def read_saved_token(email, credentials_path=CREDENTIALS_PATH):
+    path = os.path.expanduser(credentials_path)
+    if os.path.exists(path):
+        with open(path, 'r') as f:
+            creds = json.load(f)
+            if email in creds:
+                return creds[email]
+
+    return None
+
+
 def connect(email, password=None, api='https://api.ovation.io', token='services/token'):
     """Creates a new Session.
     
@@ -27,7 +42,7 @@ def connect(email, password=None, api='https://api.ovation.io', token='services/
         Ovation.io account email
     
     password : string, optional
-        Ovation.io account passowrd. If ommited, the password will be prompted at the command prompt
+        Ovation.io account password. If omitted, the password will be prompted.
     
     Returns
     -------
@@ -35,6 +50,10 @@ def connect(email, password=None, api='https://api.ovation.io', token='services/
         A new authenticated Session
 
     """
+
+    saved_token = read_saved_token(email)
+    if saved_token:
+        return Session(saved_token, api=api)
 
     if password is None:
         pw = getpass("Ovation password: ")
@@ -156,8 +175,8 @@ class Session(object):
         return path
 
     def retry_call(self, m, *args, **kwargs):
-        return retrying.Retrying(stop_max_attempt_number=self.retry+1,
-                                 wait_exponential_multiplier=MIN_RETRY_DELAY_MS, # MS
+        return retrying.Retrying(stop_max_attempt_number=self.retry + 1,
+                                 wait_exponential_multiplier=MIN_RETRY_DELAY_MS,  # MS
                                  wait_exponential_max=MAX_RETRY_DELAY_MS,
                                  wait_jitter_max=MIN_RETRY_DELAY_MS,
                                  retry_on_exception=_retry_if_http_error).call(m, *args, **kwargs)
