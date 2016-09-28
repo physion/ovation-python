@@ -1,14 +1,14 @@
 import requests.exceptions
 from nose.tools import istest, assert_equal
 from six.moves.urllib_parse import urljoin
-from unittest.mock import Mock, sentinel
-import ovation.session as connection
+from unittest.mock import Mock, sentinel, patch
+import ovation.session as session
 
 
 @istest
 def should_set_session_token():
     token = 'my-token'
-    s = connection.Session(token)
+    s = session.Session(token)
 
     assert_equal(s.token, token)
 
@@ -17,7 +17,7 @@ def should_set_session_token():
 def should_set_api_base():
     token = 'my-token'
     api_base = 'https://my.server/'
-    s = connection.Session(token, api=api_base)
+    s = session.Session(token, api=api_base)
 
     path = '/api/v1/some/path'
     assert_equal(s.make_url(path), urljoin(api_base, path))
@@ -26,7 +26,7 @@ def should_set_api_base():
 def should_add_prefix():
     token = 'my-token'
     api_base = 'https://my.server/'
-    s = connection.Session(token, api=api_base)
+    s = session.Session(token, api=api_base)
 
     path = '/some/path'
     assert_equal(s.make_url(path), urljoin(api_base, '/api/v1' + path))
@@ -34,21 +34,21 @@ def should_add_prefix():
 
 @istest
 def should_make_type_index_url():
-    s = connection.Session(sentinel.token)
+    s = session.Session(sentinel.token)
 
     assert_equal(s.entity_path('project'), '/projects/')
 
 
 @istest
 def should_make_type_get_url():
-    s = connection.Session(sentinel.token)
+    s = session.Session(sentinel.token)
 
     assert_equal(s.entity_path('project', entity_id='123'), '/projects/123')
 
 
 @istest
 def should_return_single_entry_value():
-    s = connection
+    s = session
 
 
     entities = ['foo', 'bar']
@@ -57,7 +57,7 @@ def should_return_single_entry_value():
 
 @istest
 def should_return_datadict():
-    s = connection
+    s = session
     result = s.simplify_response({'bar': 'baz',
                                   'foo': sentinel.bar})
 
@@ -66,7 +66,7 @@ def should_return_datadict():
 
 @istest
 def should_return_multientry_keys_and_values():
-    s = connection
+    s = session
 
     d = {'entities': sentinel.entities,
          'others': 'foo'}
@@ -74,7 +74,7 @@ def should_return_multientry_keys_and_values():
 
 @istest
 def should_simplify_tags_response():
-    s = connection
+    s = session
     d = {
         "tags": [
             {
@@ -134,7 +134,7 @@ def should_clean_for_update():
     response.raise_for_status = Mock(return_value=None)
     response.json = Mock(return_value=sentinel.resp)
 
-    s = connection.Session(token, api=api_base)
+    s = session.Session(token, api=api_base)
     s.session.put = Mock(return_value=response)
 
     entity = {'_id': 1,
@@ -162,7 +162,7 @@ def should_proxy_get_requests_session():
     response.raise_for_status = Mock(return_value=None)
     response.json = Mock(return_value=sentinel.resp)
 
-    s = connection.Session(token, api=api_base)
+    s = session.Session(token, api=api_base)
     s.session.get = Mock(return_value=response)
 
     assert_equal(s.get(path), sentinel.resp)
@@ -178,7 +178,16 @@ def should_retry_failed_requests():
     response.raise_for_status = Mock(return_value=None)
     response.json = Mock(return_value=sentinel.resp)
 
-    s = connection.Session(token, api=api_base, retry=1)
+    s = session.Session(token, api=api_base, retry=1)
     s.session.get = Mock(side_effect=[requests.exceptions.HTTPError(), response])
 
     assert_equal(s.get(path), sentinel.resp)
+
+
+@istest
+@patch('ovation.session.read_saved_token')
+def should_use_saved_token(rst):
+    rst.return_value = sentinel.token
+
+    assert_equal(session.connect(sentinel.email).token, sentinel.token)
+    rst.assert_called_with(sentinel.email)

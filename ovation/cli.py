@@ -31,9 +31,6 @@ def main():
     parser_download.add_argument('entity_id', help='File or Revision UUID')
     parser_download.add_argument('-o', '--output', help='Output directory')
     parser_download.set_defaults(func=download.download_main)
-    # download.download_main(user=args.user,
-    #               entity_id=args.entity_id,
-    #               output=args.output)
 
 
     # CONTENTS
