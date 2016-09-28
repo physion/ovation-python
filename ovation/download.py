@@ -3,36 +3,44 @@ import os.path
 import functools
 import requests
 import six
+import logging
 
 import ovation.core as core
+import ovation.contents as contents
 
 from tqdm import tqdm
 from six.moves.urllib_parse import urlsplit
 from pprint import pprint
 from multiprocessing.pool import ThreadPool as Pool
 
-DEFAULT_CHUNK_SIZE = 1024*1024
+DEFAULT_CHUNK_SIZE = 1024 * 1024
 
-def revision_download_info(session, revision):
+
+class DownloadException(Exception):
+    def __init__(self, msg):
+        super(DownloadException, self).__init__(msg)
+
+
+def revision_download_info(session, file_or_revision):
     """
     Get temporary download link and ETag for a Revision.
 
     :param session: ovation.connection.Session
-    :param revision: revision entity dictionary or revision ID string
+    :param file_or_revision: revision entity dictionary or revision ID string
     :return: dict with `url`, `etag`, and S3 `path`
     """
 
-    if isinstance(revision, six.string_types):
-        e = session.get(session.entity_path('entities', entity_id=revision))
-        if e.type == core.REVISION_TYPE:
-            revision = e
-        elif e.type == core.FILE_TYPE:
-            revision = session.get(e.links.heads)[0]
-        else:
-            raise Exception("Whoops! {} is not a File or Revision".format(revision))
+    if isinstance(file_or_revision, six.string_types):
+        file_or_revision = session.get(session.entity_path('entities', entity_id=file_or_revision))
+        if file_or_revision.type not in [core.REVISION_TYPE, core.FILE_TYPE]:
+            raise Exception("Whoops! {} is not a File or Revision".format(file_or_revision))
 
-    if revision['type'] == core.FILE_TYPE:
-        revision = session.get(revision.links.heads)[0]
+    if file_or_revision['type'] == core.FILE_TYPE:
+        revision = contents.get_head_revision(session, file_or_revision)
+        if revision is None:
+            raise DownloadException("No revisions found for {}".format(file_or_revision._id))
+    else:
+        revision = file_or_revision
 
     if not revision['type'] == core.REVISION_TYPE:
         raise Exception("Whoops! {} is not a File or Revision".format(revision['_id']))
@@ -59,9 +67,14 @@ def download_revision(session, revision, output=None, progress=tqdm):
     :return: file path
     """
 
-    url = revision_download_info(session, revision)['url']
+    try:
+        info = revision_download_info(session, revision)
+        url = info['url']
 
-    download_url(url, progress=progress, output=output)
+        download_url(url, progress=progress, output=output)
+    except DownloadException as e:
+        logging.error("Download error: {}".format(e))
+
 
 
 def download_url(url, output=None, progress=tqdm):
@@ -99,6 +112,7 @@ def download_folder(session, folder, output=None, progress=tqdm):
                           unit='file',
                           total=len(files)):
             pass
+
 
 def _traverse_folder(session, folder, output=None, progress=tqdm):
     folder = core.get_entity(session, folder)
