@@ -79,7 +79,7 @@ def get_head_revision(session, file):
     Retrieves the head revision of file specified
     :param session: ovation.session.Session
     :param file: File dict or ID
-    :return: Revision dict
+    :return: Revision dict or None if there are no head revisions
     """
 
     file = core.get_entity(session, file)
