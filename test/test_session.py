@@ -190,4 +190,4 @@ def should_use_saved_token(rst):
     rst.return_value = sentinel.token
 
     assert_equal(session.connect(sentinel.email).token, sentinel.token)
-    rst.assert_called_with(sentinel.email)
+    rst.assert_called_with(sentinel.email, url=session.DEFAULT_HOST)
