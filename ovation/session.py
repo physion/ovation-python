@@ -9,7 +9,7 @@ import six
 import retrying
 import json
 
-from six.moves.urllib_parse import urljoin
+from six.moves.urllib_parse import urljoin, urlparse
 from getpass import getpass
 
 DEFAULT_HOST = 'https://api.ovation.io'
@@ -24,8 +24,10 @@ class DataDict(dict):
 CREDENTIALS_PATH = "~/.ovation/credentials.json"
 
 
-def read_saved_token(email, host=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH):
+def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH):
     path = os.path.expanduser(credentials_path)
+    o = urlparse(url)
+    host = o.netloc
     if os.path.exists(path):
         with open(path, 'r') as f:
             creds = json.load(f)
@@ -54,7 +56,7 @@ def connect(email, password=None, api=DEFAULT_HOST, token='services/token'):
 
     """
 
-    saved_token = read_saved_token(email, host=api)
+    saved_token = read_saved_token(email, url=api)
     if saved_token:
         return Session(saved_token, api=api)
 
