@@ -57,7 +57,7 @@ def upload_folder(session, parent, directory_path, progress=tqdm):
             upload_revision(session, file, path, progress=progress)
 
 
-def upload_file(session, parent, file_path, progress=tqdm):
+def upload_file(session, parent, file_path, name=None, content_type=None, progress=tqdm):
     """
     Upload a file to Ovation
 
@@ -65,11 +65,17 @@ def upload_file(session, parent, file_path, progress=tqdm):
     :param parent: Project or Folder root
     :param file_path: local path to file
     :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
+    :param content_type: revision content type (default: infer from file name)
+    :param name: file name (default: local path basename)
     :return: created File entity dictionary
     """
-    name = os.path.basename(file_path)
+
+    if name is None:
+        name = os.path.basename(file_path)
+
     file = core.create_file(session, parent, name)
     return upload_revision(session, file, file_path, progress=progress)
+
 
 
 def guess_content_type(file_name):
@@ -97,7 +103,12 @@ def multipart_chunksize(n_bytes):
     return max(chunk_size, 8 * MB)
 
 
-def upload_revision(session, parent_file, local_path, progress=tqdm, chunk_size=multipart_chunksize):
+def upload_revision(session,
+                    parent_file,
+                    local_path,
+                    progress=tqdm,
+                    chunk_size=multipart_chunksize,
+                    content_type=None):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -105,14 +116,16 @@ def upload_revision(session, parent_file, local_path, progress=tqdm, chunk_size=
     :param parent_file: file entity dictionary or file ID string
     :param local_path: local path
     :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
+    :param content_type: revision content type (default: infer from file name)
     :return: new `Revision` entity dicitonary
     """
 
     if isinstance(parent_file, six.string_types):
         parent_file = session.get(session.entity_path('file', entity_id=parent_file))
 
-    file_name = os.path.basename(local_path)
-    content_type = guess_content_type(file_name)
+    if content_type is None:
+        file_name = os.path.basename(local_path)
+        content_type = guess_content_type(file_name)
 
     r = session.post(parent_file['links']['self'],
                      data={'entities': [{'type': 'Revision',
@@ -123,13 +136,17 @@ def upload_revision(session, parent_file, local_path, progress=tqdm, chunk_size=
 
     try:
         upload_to_aws(aws, content_type, local_path, progress, chunk_size=chunk_size)
-    except Error as err:
-        session.put(revision['links']['upload-failed'], entity=None)
-    finally:
         return session.put(revision['links']['upload-complete'], entity=None)
+    except Error as err:
+        return session.put(revision['links']['upload-failed'], entity=None)
 
 
-def upload_to_aws(aws, content_type, local_path, progress, chunk_size=multipart_chunksize):
+def upload_to_aws(aws,
+                  content_type,
+                  local_path_or_fileobj,
+                  progress,
+                  chunk_size=multipart_chunksize):
+
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
                                 aws_secret_access_key=aws['secret_access_key'],
                                 aws_session_token=aws['session_token'])
@@ -138,17 +155,27 @@ def upload_to_aws(aws, content_type, local_path, progress, chunk_size=multipart_
     args = {'ContentType': content_type,
             'ServerSideEncryption': 'AES256'}
 
-    transfer_config = TransferConfig(multipart_chunksize=chunk_size(os.path.getsize(local_path)))
 
-    if progress and os.path.exists(local_path):
-        file_obj.upload_file(local_path, ExtraArgs=args,
-                             Callback=ProgressPercentage(local_path, progress=progress),
-                             Config=transfer_config)
+    if isinstance(parent, six.string_types):
+        transfer_config = TransferConfig(multipart_chunksize=chunk_size(os.path.getsize(local_path_or_fileobj)))
+
+        if progress:
+            file_obj.upload_file(local_path_or_fileobj,
+                                 ExtraArgs=args,
+                                 Callback=ProgressPercentage(local_path_or_fileobj, progress=progress),
+                                 Config=transfer_config)
+        else:
+            file_obj.upload_file(local_path_or_fileobj,
+                                 ExtraArgs=args,
+                                 Config=transfer_config)
     else:
-        file_obj.upload_file(local_path,
-                             ExtraArgs=args,
-                             Config=transfer_config)
-
+        if progress:
+            file_obj.upload_fileobj(local_path_or_fileobj,
+                                    ExtraArgs=args,
+                                    Callback=ProgressPercentage(local_path_or_fileobj, progress=progress))
+        else:
+            file_obj.upload_fileobj(local_path_or_fileobj,
+                                    ExtraArgs=args)
 
 def upload_paths(args):
     session = args.session
