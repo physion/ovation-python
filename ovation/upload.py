@@ -57,13 +57,18 @@ def upload_folder(session, parent, directory_path, progress=tqdm):
             upload_revision(session, file, path, progress=progress)
 
 
-def upload_file(session, parent, file_path, name=None, content_type=None, progress=tqdm):
+def upload_file(session,
+                parent,
+                local_path_or_file_obj,
+                name=None,
+                content_type=None,
+                progress=tqdm):
     """
     Upload a file to Ovation
 
     :param session: Session
     :param parent: Project or Folder root
-    :param file_path: local path to file
+    :param local_path_or_file_obj: local path to file
     :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
     :param content_type: revision content type (default: infer from file name)
     :param name: file name (default: local path basename)
@@ -71,10 +76,15 @@ def upload_file(session, parent, file_path, name=None, content_type=None, progre
     """
 
     if name is None:
-        name = os.path.basename(file_path)
+        name = os.path.basename(local_path_or_file_obj)
 
     file = core.create_file(session, parent, name)
-    return upload_revision(session, file, file_path, progress=progress)
+    return upload_revision(session,
+                           file,
+                           local_path_or_file_obj,
+                           content_type=content_type,
+                           file_name=name,
+                           progress=progress)
 
 
 
@@ -108,7 +118,8 @@ def upload_revision(session,
                     local_path,
                     progress=tqdm,
                     chunk_size=multipart_chunksize,
-                    content_type=None):
+                    content_type=None,
+                    file_name=None):
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
@@ -117,14 +128,17 @@ def upload_revision(session,
     :param local_path: local path
     :param progress: if not None, wrap in a progress (i.e. tqdm). Default: tqdm
     :param content_type: revision content type (default: infer from file name)
+    :param file_name: revision file name (default: infer from local path)
     :return: new `Revision` entity dicitonary
     """
 
     if isinstance(parent_file, six.string_types):
         parent_file = session.get(session.entity_path('file', entity_id=parent_file))
 
-    if content_type is None:
+    if file_name is None:
         file_name = os.path.basename(local_path)
+
+    if content_type is None:
         content_type = guess_content_type(file_name)
 
     r = session.post(parent_file['links']['self'],
@@ -156,7 +170,7 @@ def upload_to_aws(aws,
             'ServerSideEncryption': 'AES256'}
 
 
-    if isinstance(parent, six.string_types):
+    if isinstance(local_path_or_fileobj, six.string_types):
         transfer_config = TransferConfig(multipart_chunksize=chunk_size(os.path.getsize(local_path_or_fileobj)))
 
         if progress:
