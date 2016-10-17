@@ -50,7 +50,7 @@ def should_create_revision(boto_session, getsize):
     s.put = Mock(return_value=sentinel.result)
 
     # Act
-    result = upload.upload_revision(s, file, path)
+    result = upload.upload_revision(s, file, path, progress=None)
 
     # Assert
     boto_session.assert_called_with(aws_access_key_id=sentinel.access_key,
@@ -67,7 +67,65 @@ def should_create_revision(boto_session, getsize):
     assert_equal(result, sentinel.result)
 
 
+@istest
+@patch('os.path.getsize')
+@patch('boto3.Session')
+def should_create_revision_from_file_obj(boto_session, getsize):
+    file = {'type': 'File',
+            'links': {'self': sentinel.self}}
+    open_file_obj = sentinel.file_obj
+    rev = {'_id': 1,
+           'type': 'Revision',
+           'attributes': {'url': sentinel.url},
+           'links': {'upload-complete': sentinel.upload_complete}}
 
+    getsize.return_value = 100
+
+    s = Mock(spec=ovation.session.Session)
+
+    def entity_path(type='', id=''):
+        return "/api/v1/{}/{}".format(type, id)
+
+    s.entity_path.side_effect = entity_path
+    aws_session = Mock()
+    s3 = Mock()
+    boto_session.return_value = aws_session
+    aws_session.resource = Mock(return_value=s3)
+
+    file_obj = Mock()
+    s3.Object = Mock(return_value=file_obj)
+    file_obj.upload_file = Mock()
+    file_obj.version_id = sentinel.version
+
+    s.post = Mock(return_value={'entities': [rev],
+                                'aws': [{'aws': dict(access_key_id=sentinel.access_key,
+                                                     secret_access_key=sentinel.secret_key,
+                                                     session_token=sentinel.session_token,
+                                                     bucket=sentinel.bucket,
+                                                     key=sentinel.key)}]})
+
+    s.put = Mock(return_value=sentinel.result)
+
+    # Act
+    result = upload.upload_revision(s,
+                                    file,
+                                    open_file_obj,
+                                    content_type='text/plain',
+                                    file_name='my-file',
+                                    progress=None)
+
+    # Assert
+    boto_session.assert_called_with(aws_access_key_id=sentinel.access_key,
+                                    aws_secret_access_key=sentinel.secret_key,
+                                    aws_session_token=sentinel.session_token)
+    s3.Object.assert_called_with(sentinel.bucket, sentinel.key)
+    file_obj.upload_fileobj.assert_called_with(open_file_obj,
+                                               ExtraArgs={'ContentType': 'text/plain',
+                                                          'ServerSideEncryption': 'AES256'})
+
+    s.put.assert_called_with(sentinel.upload_complete, entity=None)
+
+    assert_equal(result, sentinel.result)
 
 @istest
 @patch('os.path.getsize')
@@ -111,7 +169,7 @@ def should_set_multipart_chunk_size(boto_session, getsize):
     s.put = Mock(return_value=sentinel.result)
 
     # Act
-    upload.upload_revision(s, file, path, chunk_size=_chunk_size)
+    upload.upload_revision(s, file, path, chunk_size=_chunk_size, progress=None)
 
     # Assert
     call = file_obj.upload_file.call_args_list[0]
