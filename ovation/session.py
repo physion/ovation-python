@@ -196,7 +196,7 @@ class Session(object):
         r.raise_for_status()
         return r
 
-    def put(self, path, entity=None, **kwargs):
+    def put(self, path, entity=None, data=None, **kwargs):
         """
 
         :param path: entity path
@@ -218,7 +218,8 @@ class Session(object):
             else:
                 data = {entity['type'].lower(): entity}
         else:
-            data = {}
+            if data is None:
+                data = {}
 
         kwargs['json'] = data
         r = self.retry_call(self._put, path, **kwargs)
