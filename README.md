@@ -31,13 +31,43 @@ To create a session, connect using your Ovation user email and password:
 
 You can supply your password as a `password=...` keyword parameter if you're using the Ovation API from a script. But for most cases, you'll want to let the Ovation API prompt you for your password (this works in the Python/IPython terminal or in a Jupyter notebook).
 
-### Listing Projects from the terminal
+### API tokens
+
+If an API token exists in `~/.ovation/credentials.json`, `ovation.session.connect` will automatically use the correct token so you don't have to enter your password. Once a token is generated, you can save it to `credentials.json`. This file lists tokens by user (email) and host:
+
+```
+{
+    "api.ovation.io": {
+        "YOUR EMAIL": "YOUR TOKEN HERE"
+    }
+}
+```
+
+If you use both the Ovation Research and Lab APIs, you can enter tokens for both:
+
+```
+{
+    "api.ovation.io": {
+        "YOUR EMAIL": "YOUR RESEARCH TOKEN"
+    },
+    "lab-staging.ovation.io": {
+        "YOUR EMAIL": "YOUR LAB TOKEN"
+    }
+}
+```
+
+**Your API token is secret**. Anyone with your API token has full access to your Ovation account. Make sure that the permissions on `credentials.json` allow only you to access the file. On OS X or Linux, you can set the permissions like this:
+
+	chmod go-rw ~/.ovation/credentials.json
+
+
+### Listing projects from the terminal
 
 You can list all of your Projects:
 
     python -m ovation.cli ls
     
-### Listing Project or Folder contents from the terminal
+### Listing project or folder contents from the terminal
 
 You can list the contents of a `Project` or `Folder`:
 
