@@ -151,7 +151,7 @@ def upload_revision(session,
     try:
         upload_to_aws(aws, content_type, local_path, progress, chunk_size=chunk_size)
         return session.put(revision['links']['upload-complete'], entity=None)
-    except Error as err:
+    except Exception as err:
         return session.put(revision['links']['upload-failed'], entity=None)
 
 
