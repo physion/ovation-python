@@ -150,7 +150,8 @@ class Session(object):
                 return r
 
         self.session.auth = BearerAuth(token)
-        self.session.headers = {'content-type': 'application/json'}
+        self.session.headers = {'content-type': 'application/json',
+                                'accept': 'application/json'}
 
     def refresh(self):
         pass
