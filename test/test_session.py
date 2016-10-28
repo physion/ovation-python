@@ -3,6 +3,7 @@ from nose.tools import istest, assert_equal
 from six.moves.urllib_parse import urljoin
 from unittest.mock import Mock, sentinel, patch
 import ovation.session as session
+import json
 
 
 @istest
@@ -191,3 +192,26 @@ def should_use_saved_token(rst):
 
     assert_equal(session.connect(sentinel.email).token, sentinel.token)
     rst.assert_called_with(sentinel.email, url=session.DEFAULT_HOST)
+
+
+@istest
+def should_generate_json():
+    s = session.Session('TOKEN', api='API', prefix='PREFIX', retry=1)
+
+    assert_equal(json.dumps({'token': 'TOKEN',
+                             'api_base': 'API',
+                             'prefix': 'PREFIX',
+                             'retry': 1}),
+                 s.json())
+
+
+@istest
+def should_build_from_json():
+    json_session = json.dumps({'token': 'TOKEN',
+                               'api_base': 'API',
+                               'prefix': 'PREFIX',
+                               'retry': 1})
+
+    s = session.Session.from_json(json_session)
+
+    assert_equal(s.json(), json_session)

@@ -153,6 +153,20 @@ class Session(object):
         self.session.headers = {'content-type': 'application/json',
                                 'accept': 'application/json'}
 
+    def json(self):
+        return json.dumps({'token': self.token,
+                           'api_base': self.api_base,
+                           'prefix': self.prefix,
+                           'retry': self.retry})
+
+    @staticmethod
+    def from_json(json_string):
+        d = json.loads(json_string)
+        return Session(d['token'],
+                       api=d['api_base'],
+                       prefix=d['prefix'],
+                       retry=d['retry'])
+
     def refresh(self):
         pass
 

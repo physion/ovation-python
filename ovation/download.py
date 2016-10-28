@@ -5,14 +5,17 @@ import requests
 import six
 import logging
 import retrying
+import json
 
 import ovation.core as core
 import ovation.contents as contents
 
+from ovation.session import Session
+
 from tqdm import tqdm
 from six.moves.urllib_parse import urlsplit
 from pprint import pprint
-from multiprocessing.pool import ThreadPool as Pool
+from multiprocessing.pool import Pool #ThreadPool as Pool
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 
@@ -95,7 +98,9 @@ def download_url(url, output=None, progress=tqdm):
                 f.write(data)
 
 
-def _download_revision_path(session, revision_path, progress=tqdm):
+def _download_revision_path(session_json, revision_path, progress=tqdm):
+    session = Session.from_json(session_json)
+
     try:
         return download_revision(session, revision_path[1], output=revision_path[0], progress=progress)
     except DownloadException as e:
@@ -103,10 +108,10 @@ def _download_revision_path(session, revision_path, progress=tqdm):
 
 
 def download_folder(session, folder, output=None, progress=tqdm):
-    files = _traverse_folder(session, folder, output=output, progress=progress)
+    files = _traverse_folder(session.json(), folder, output=output, progress=progress)
     with Pool() as p:
         for f in progress(p.imap_unordered(functools.partial(_download_revision_path,
-                                                             session,
+                                                             session.json(),
                                                              progress=None),
                                            files),
                           desc='Downloading files',
@@ -115,7 +120,8 @@ def download_folder(session, folder, output=None, progress=tqdm):
             pass
 
 
-def _traverse_folder(session, folder, output=None, progress=tqdm):
+def _traverse_folder(session_json, folder, output=None, progress=tqdm):
+    session = Session.from_json(session_json)
     folder = core.get_entity(session, folder)
     if folder is None:
         return
@@ -136,7 +142,7 @@ def _traverse_folder(session, folder, output=None, progress=tqdm):
     folders = session.get(folder.relationships.folders.related)
     with Pool() as p:
         for subfiles in progress(p.imap_unordered(functools.partial(_traverse_folder,
-                                                                    session,
+                                                                    session.json(),
                                                                     output=path,
                                                                     progress=progress),
                                                   folders),
