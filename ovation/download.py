@@ -15,9 +15,10 @@ from ovation.session import Session
 from tqdm import tqdm
 from six.moves.urllib_parse import urlsplit
 from pprint import pprint
-from multiprocessing.pool import Pool #ThreadPool as Pool
+from multiprocessing.pool import Pool  # ThreadPool as Pool
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
+PROCESS_POOL_SIZE = 5
 
 
 class DownloadException(Exception):
@@ -109,10 +110,10 @@ def _download_revision_path(session_json, revision_path, progress=tqdm):
 
 def download_folder(session, folder, output=None, progress=tqdm):
     files = _traverse_folder(session.json(), folder, output=output, progress=progress)
-    with Pool() as p:
+    with Pool(processes=PROCESS_POOL_SIZE) as p:
         for f in progress(p.imap_unordered(functools.partial(_download_revision_path,
                                                              session.json(),
-                                                             progress=None),
+                                                             progress=progress),
                                            files),
                           desc='Downloading files',
                           unit='file',
