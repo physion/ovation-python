@@ -93,10 +93,12 @@ def download_url(url, output=None, progress=tqdm):
                                  unit='MB',
                                  unit_scale=True,
                                  miniters=1):
-                f.write(data)
+                if data:
+                    f.write(data)
         else:
             for data in response.iter_content(chunk_size=DEFAULT_CHUNK_SIZE):
-                f.write(data)
+                if data:
+                    f.write(data)
 
 
 def _download_revision_path(session_json, revision_path, progress=tqdm):
