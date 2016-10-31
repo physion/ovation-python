@@ -87,7 +87,6 @@ def upload_file(session,
                            progress=progress)
 
 
-
 def guess_content_type(file_name):
     content_type = mimetypes.guess_type(file_name)[0]
     if content_type is None:
@@ -160,7 +159,6 @@ def upload_to_aws(aws,
                   local_path_or_fileobj,
                   progress,
                   chunk_size=multipart_chunksize):
-
     aws_session = boto3.Session(aws_access_key_id=aws['access_key_id'],
                                 aws_secret_access_key=aws['secret_access_key'],
                                 aws_session_token=aws['session_token'])
@@ -168,7 +166,6 @@ def upload_to_aws(aws,
     file_obj = s3.Object(aws['bucket'], aws['key'])
     args = {'ContentType': content_type,
             'ServerSideEncryption': 'AES256'}
-
 
     if isinstance(local_path_or_fileobj, six.string_types):
         transfer_config = TransferConfig(multipart_chunksize=chunk_size(os.path.getsize(local_path_or_fileobj)))
@@ -190,6 +187,7 @@ def upload_to_aws(aws,
         else:
             file_obj.upload_fileobj(local_path_or_fileobj,
                                     ExtraArgs=args)
+
 
 def upload_paths(args):
     session = args.session
