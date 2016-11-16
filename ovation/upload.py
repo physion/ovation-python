@@ -11,10 +11,9 @@ from boto3.s3.transfer import TransferConfig
 from tqdm import tqdm
 
 
-class ProgressPercentage(object):
+class ProgressCallback(object):
     def __init__(self, filename, progress=tqdm):
         self._filename = filename
-        self._seen_so_far = 0
         self._lock = threading.Lock()
         self._size = float(os.path.getsize(filename))
         self._progress = progress(unit='B',
@@ -26,9 +25,8 @@ class ProgressPercentage(object):
         # To simplify we'll assume this is hooked up
         # to a single filename.
         with self._lock:
-            self._seen_so_far += bytes_amount
-            self._progress.update(self._seen_so_far)
-            if self._seen_so_far >= self._size:
+            self._progress.update(bytes_amount)
+            if bytes_amount >= self._size:
                 self._progress.close()
 
 
@@ -173,7 +171,7 @@ def upload_to_aws(aws,
         if progress:
             file_obj.upload_file(local_path_or_fileobj,
                                  ExtraArgs=args,
-                                 Callback=ProgressPercentage(local_path_or_fileobj, progress=progress),
+                                 Callback=ProgressCallback(local_path_or_fileobj, progress=progress),
                                  Config=transfer_config)
         else:
             file_obj.upload_file(local_path_or_fileobj,
@@ -183,7 +181,7 @@ def upload_to_aws(aws,
         if progress:
             file_obj.upload_fileobj(local_path_or_fileobj,
                                     ExtraArgs=args,
-                                    Callback=ProgressPercentage(local_path_or_fileobj, progress=progress))
+                                    Callback=ProgressCallback(local_path_or_fileobj, progress=progress))
         else:
             file_obj.upload_fileobj(local_path_or_fileobj,
                                     ExtraArgs=args)
