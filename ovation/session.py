@@ -38,16 +38,16 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
     return None
 
 
-def connect(email, password=None, api=DEFAULT_HOST, token='services/token'):
+def connect(email, token=None, api=DEFAULT_HOST):
     """Creates a new Session.
     
     Arguments
     ---------
-    email : string
-        Ovation.io account email
-    
-    password : string, optional
-        Ovation.io account password. If omitted, the password will be prompted.
+    email : string, optional
+        Ovation.io account email. Required for selection of saved token.
+
+    token : string, optional
+        Ovation.io API token.
     
     Returns
     -------
@@ -60,24 +60,9 @@ def connect(email, password=None, api=DEFAULT_HOST, token='services/token'):
     if saved_token:
         return Session(saved_token, api=api)
 
-    if password is None:
-        pw = getpass("Ovation password: ")
-    else:
-        pw = password
+    if token is None:
+        token = getpass("Ovation API token: ")
 
-    r = requests.post(urljoin(api, token), json={'email': email, 'password': pw})
-    if r.status_code != requests.codes.ok:
-        messages = {401: "Email or password incorrect. Please check your account credentials and try again. "
-                         "Please email support@ovation.io if you need assistance.",
-                    500: "Unable to connect due to a server error. Our engineering team has been notified. "
-                         "Please email support@ovation.io if you need assistance."}
-        if r.status_code in messages.keys():
-            print(messages[r.status_code])
-            return
-        else:
-            r.raise_for_status()
-
-    token = r.json()['token']
     return Session(token, api=api)
 
 
