@@ -55,7 +55,7 @@ def upload_resource(session, entity_id, local_path, label=None, resource_group=N
     return session.put(session.entity_path('resources', r.id), entity=r)
 
 
-def upload_resource_group(session, activity, local_directory_path, label=None, progress=tqdm):
+def upload_resource_group(session, activity, local_directory_path, label=None, progress=tqdm, parent_id=None):
     """
     Recursively uploads a folder to Ovation as a ResourceGroup
 
@@ -69,24 +69,20 @@ def upload_resource_group(session, activity, local_directory_path, label=None, p
     if not isinstance(activity, six.string_types):
         activity = activity['uuid']
 
-    parent_id = None
-    root_group = None
-    for root, dirs, files in os.walk(local_directory_path):
-        root_name = os.path.basename(root)
-        if len(root_name) == 0:
-            root_name = os.path.basename(os.path.dirname(root))
+    root_name = os.path.basename(local_directory_path)
+    if len(root_name) == 0:
+        root_name = os.path.basename(os.path.dirname(local_directory_path))
+    resource_group = _create_resource_group(session, activity, root_name, parent=parent_id)
 
-        resource_group = _create_resource_group(session, activity, root_name, parent=parent_id)
-        if root_group is None:
-            root_group = resource_group
-        parent_id = resource_group.id
+    directory_iterator = os.scandir(local_directory_path)
+    for entry in directory_iterator:
+        if entry.is_file():
+            upload_resource(session, activity, entry.path, label=label, resource_group=resource_group, progress=progress)
 
-        for f in files:
-            path = os.path.join(root, f)
+        elif entry.is_dir():
+            upload_resource_group(session, activity, entry.path, label=label, progress=progress, parent_id=resource_group.id)
 
-            upload_resource(session, activity, path, label=label, resource_group=resource_group, progress=progress)
-
-    return root_group
+    return resource_group
 
 
 def upload_resources(session, activity, resources, progress=tqdm):
