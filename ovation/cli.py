@@ -47,12 +47,7 @@ def main():
     if args.user is None:
         args.user = input('Email: ')
 
-    if 'OVATION_PASSWORD' in os.environ:
-        password = os.environ['OVATION_PASSWORD']
-    else:
-        password = None
-
-    s = session.connect(args.user, password=password)
+    s = session.connect(args.user)
     args.session = s
 
     args.func(args)
