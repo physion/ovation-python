@@ -37,14 +37,14 @@ def should_add_prefix():
 def should_make_type_index_url():
     s = session.Session(sentinel.token)
 
-    assert_equal(s.entity_path('project'), '/projects/')
+    assert_equal(s.path('project'), '/projects/')
 
 
 @istest
 def should_make_type_get_url():
     s = session.Session(sentinel.token)
 
-    assert_equal(s.entity_path('project', entity_id='123'), '/projects/123')
+    assert_equal(s.path('project', entity_id='123'), '/projects/123')
 
 
 @istest
