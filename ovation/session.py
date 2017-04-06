@@ -9,6 +9,8 @@ import six
 import retrying
 import json
 
+from ovation.util import deprecated
+
 from six.moves.urllib_parse import urljoin, urlparse
 from getpass import getpass
 
@@ -167,7 +169,16 @@ class Session(object):
         return urljoin(self.api_base, path)
 
     @staticmethod
-    def entity_path(resource='entities', entity_id=None):
+    def path(resource='entities', entity_id=None):
+        """Makes a resource path
+        
+            >>> Session.path('projects')
+            /api/v1/projects
+        
+        :param resource: Entity name (e.g. "project" or "projects"). Pluralization will be added if needed
+        :param entity_id: Optional single entity ID
+        :return: complete resource path
+        """
         resource = resource.lower()
 
         if not resource.endswith('s'):
@@ -178,6 +189,13 @@ class Session(object):
             path = path + str(entity_id)
 
         return path
+
+    @staticmethod
+    @deprecated
+    def entity_path(resource='entities', entity_id=None):
+        """DEPRECATED.
+        :see: ovation.session.Session.path"""
+        return Session.path(resource=resource, entity_id=entity_id)
 
     def retry_call(self, m, *args, **kwargs):
         return retrying.Retrying(stop_max_attempt_number=self.retry + 1,
