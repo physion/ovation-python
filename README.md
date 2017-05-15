@@ -50,7 +50,7 @@ If you use both the Ovation Research and Lab APIs, you can enter tokens for both
     "api.ovation.io": {
         "YOUR EMAIL": "YOUR RESEARCH TOKEN"
     },
-    "lab-staging.ovation.io": {
+    "lab-services.ovation.io": {
         "YOUR EMAIL": "YOUR LAB TOKEN"
     }
 }

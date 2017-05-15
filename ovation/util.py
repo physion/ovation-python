@@ -11,9 +11,7 @@ def deprecated(func):
         warnings.simplefilter('always', DeprecationWarning) #turn off filter
         warnings.warn("Call to deprecated function {}.".format(func.__name__),
                       category=DeprecationWarning,
-                      stacklevel=2,
-                      filename=func.func_code.co_filename,
-                      lineno=func.func_code.co_firstlineno + 1)
+                      stacklevel=2)
         warnings.simplefilter('default', DeprecationWarning) #reset filter
         return func(*args, **kwargs)
 
