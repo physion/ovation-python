@@ -37,14 +37,41 @@ def should_add_prefix():
 def should_make_type_index_url():
     s = session.Session(sentinel.token)
 
-    assert_equal(s.path('project'), '/projects/')
+    assert_equal(s.path('project', include_org=False), '/projects/')
+
+
+@istest
+def should_make_type_index_url_with_default_org():
+    s = session.Session(sentinel.token)
+
+    assert_equal(s.path('project', False), '/o/0/projects/')
+
+
+@istest
+def should_make_type_index_url_with_org():
+    s = session.Session(sentinel.token)
+
+    assert_equal(s.path('project', org=123), '/o/123/projects/')
 
 
 @istest
 def should_make_type_get_url():
     s = session.Session(sentinel.token)
 
-    assert_equal(s.path('project', entity_id='123'), '/projects/123')
+    assert_equal(s.path('project', entity_id='123', include_org=False), '/projects/123')
+
+@istest
+def should_make_type_get_url_with_default_org():
+    s = session.Session(sentinel.token)
+
+    assert_equal(s.path('project', entity_id='123'), '/o/0/projects/123')
+
+
+@istest
+def should_make_type_get_url_with_org():
+    s = session.Session(sentinel.token)
+
+    assert_equal(s.path('project', entity_id='123', org=235), '/o/235/projects/123')
 
 
 @istest
