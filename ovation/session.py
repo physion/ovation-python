@@ -169,7 +169,7 @@ class Session(object):
         return urljoin(self.api_base, path)
 
     @staticmethod
-    def path(resource='entities', entity_id=None):
+    def path(resource='entities', entity_id=None, org=0, include_org=True):
         """Makes a resource path
         
             >>> Session.path('projects')
@@ -184,7 +184,12 @@ class Session(object):
         if not resource.endswith('s'):
             resource += 's'
 
-        path = '/' + resource + '/'
+
+        if include_org:
+            path = '/o/{org}/{resource}/'.format(org=org, resource=resource)
+        else:
+            path = '/{resource}/'.format(org=org, resource=resource)
+
         if entity_id:
             path = path + str(entity_id)
 
