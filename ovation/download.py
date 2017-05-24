@@ -36,7 +36,7 @@ def revision_download_info(session, file_or_revision):
     """
 
     if isinstance(file_or_revision, six.string_types):
-        file_or_revision = session.get(session.entity_path('entities', entity_id=file_or_revision))
+        file_or_revision = session.get(session.path('entities', entity_id=file_or_revision))
         if file_or_revision.type not in [core.REVISION_TYPE, core.FILE_TYPE]:
             raise Exception("Whoops! {} is not a File or Revision".format(file_or_revision))
 

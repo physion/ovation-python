@@ -107,7 +107,7 @@ def get_breadcrumbs(session, entity):
     if not entity.type in [core.FILE_TYPE, core.FOLDER_TYPE]:
         raise ValueError("entity is not a File or Folder")
 
-    breadcrumb_list = session.get(session.entity_path(resource="breadcrumbs"), params={"id": entity['_id']})
+    breadcrumb_list = session.get(session.path(resource="breadcrumbs"), params={"id": entity['_id']})
 
     if (breadcrumb_list):
 
