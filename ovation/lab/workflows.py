@@ -31,7 +31,7 @@ def create_activity(session, workflow_id, activity_label, activity=None,
     if len(activity.keys()) > 0 and not 'custom_attributes' in activity:
         activity = {'custom_attributes': activity}
 
-    workflow = session.get(session.entity_path('workflows', workflow_id)).workflow
+    workflow = session.get(session.path('workflows', workflow_id)).workflow
     activity_path = workflow.relationships[activity_label].self
 
     if len(resources) > 0 or len(resource_groups) > 0:
