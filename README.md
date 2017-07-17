@@ -81,7 +81,7 @@ Use the `ovation.cli` module's `upload` command to upload files from your local 
 
 for more info.
 
-### Downloading files from the termainl
+### Downloading files from the terminal
 
 Use the `ovation.cli` module's `download` command to download a `Revision` from Ovation to your local file system. Try
 
