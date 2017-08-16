@@ -6,6 +6,7 @@ FOLDER_TYPE = 'Folder'
 FILE_TYPE = 'File'
 REVISION_TYPE = 'Revision'
 PROJECT_TYPE = 'Project'
+ACTIVITY_TYPE = 'Activity'
 
 def create_file(session, parent, name, attributes=None):
     """
