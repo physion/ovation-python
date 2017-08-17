@@ -69,7 +69,8 @@ def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
 
 def add_inputs(session, activity, inputs=[]):
     activity = core.get_entity(session, activity)
-    for activity_input in inputs:
+    project = _get_project(activity)
+    for activity_input in _resolve_links(session, project, links=inputs):
         activity_input = core.get_entity(session, activity_input)
         core.add_link(session, activity,
                       target=activity_input['_id'],
@@ -77,13 +78,24 @@ def add_inputs(session, activity, inputs=[]):
                       inverse_rel='activities')
 
 
+def _get_project(activity):
+    project = core.get_entity(activity['links']['_collaboration_roots'][0])
+    return project
+
+
 def remove_inputs(session, activity, inputs=[]):
-    pass
+    activity = core.get_entity(session, activity)
+    for activity_input in inputs:
+        activity_input = core.get_entity(session, activity_input)
+        core.remove_link(session, activity,
+                         target=activity_input['_id'],
+                         rel='inputs')
 
 
 def add_outputs(session, activity, outputs=[]):
     activity = core.get_entity(session, activity)
-    for activity_output in outputs:
+    project = _get_project(activity)
+    for activity_output in _resolve_links(session, project, links=outputs):
         activity_output = core.get_entity(session, activity_output)
         core.add_link(session, activity,
                       target=activity_output['_id'],
@@ -92,4 +104,29 @@ def add_outputs(session, activity, outputs=[]):
 
 
 def remove_outputs(session, activity, outputs=[]):
-    pass
+    activity = core.get_entity(session, activity)
+    for activity_output in outputs:
+        activity_output = core.get_entity(session, activity_output)
+        core.remove_link(session, activity,
+                         target=activity_output['_id'],
+                         rel='outputs')
+
+
+def add_related(session, activity, related=[]):
+    activity = core.get_entity(session, activity)
+    project = _get_project(activity)
+    for activity_related in _resolve_links(session, project, links=related):
+        activity_related = core.get_entity(session, activity_related)
+        core.add_link(session, activity,
+                      target=activity_related['_id'],
+                      rel='actions',
+                      inverse_rel='procedures')
+
+
+def remove_related(session, activity, related=[]):
+    activity = core.get_entity(session, activity)
+    for activity_related in related:
+        activity_related = core.get_entity(session, activity_related)
+        core.remove_link(session, activity,
+                         target=activity_related['_id'],
+                         rel='actions')
