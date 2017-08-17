@@ -23,6 +23,17 @@ def _resolve_links(session, project, links=[]):
 
 
 def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
+    """
+    Creates a new Activity.
+
+    :param session: ovation.session.Session
+    :param project: Project (dict or Id)
+    :param name: activity name
+    :param inputs: input Revisions or Sources (dicts or Ids), or local file paths
+    :param outputs: output Revisions (dicts or Ids) or local file paths
+    :param related:
+    :return:
+    """
     logging.debug("Getting project")
     project = core.get_entity(session, project)
 
@@ -44,7 +55,7 @@ def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
                                   'inputs': {'related': [input['_id'] for input in inputs],
                                              'type': core.REVISION_TYPE,
                                              'inverse_rel': 'activities'},
-                                  'output': {'related': [output['_id'] for output in outputs],
+                                  'outputs': {'related': [output['_id'] for output in outputs],
                                              'type': core.REVISION_TYPE,
                                              'inverse_rel': 'origins'},
                                   'actions': {'related': [r['_id'] for r in related],
@@ -57,7 +68,13 @@ def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
 
 
 def add_inputs(session, activity, inputs=[]):
-    pass
+    activity = core.get_entity(session, activity)
+    for activity_input in inputs:
+        activity_input = core.get_entity(session, activity_input)
+        core.add_link(session, activity,
+                      target=activity_input['_id'],
+                      rel='inputs',
+                      inverse_rel='activities')
 
 
 def remove_inputs(session, activity, inputs=[]):
@@ -65,7 +82,13 @@ def remove_inputs(session, activity, inputs=[]):
 
 
 def add_outputs(session, activity, outputs=[]):
-    pass
+    activity = core.get_entity(session, activity)
+    for activity_output in outputs:
+        activity_output = core.get_entity(session, activity_output)
+        core.add_link(session, activity,
+                      target=activity_output['_id'],
+                      rel='outputs',
+                      inverse_rel='origins')
 
 
 def remove_outputs(session, activity, outputs=[]):

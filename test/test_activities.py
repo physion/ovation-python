@@ -41,7 +41,7 @@ def should_create_activity(isfile, upload_file, simplify_response):
                                        'inputs': {'related': [input['_id'] for input in [revision, source]],
                                                   'type': core.REVISION_TYPE,
                                                   'inverse_rel': 'activities'},
-                                       'output': {'related': [output['_id'] for output in [output_revision]],
+                                       'outputs': {'related': [output['_id'] for output in [output_revision]],
                                                   'type': core.REVISION_TYPE,
                                                   'inverse_rel': 'origins'},
                                        'actions': {'related': [r['_id'] for r in []],
