@@ -62,14 +62,14 @@ def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
                                               'type': core.REVISION_TYPE,
                                               'inverse_rel': 'procedures'}}}
 
-    result = session.post(project['links']['self'], data={'entities': [activity]})
+    result = session.post(session.path('activities'), data={'activities': [activity]})
 
-    return ovation.session.simplify_response(result['entities'][0])
+    return ovation.session.simplify_response(result['activities'][0])
 
 
 def add_inputs(session, activity, inputs=[]):
     activity = core.get_entity(session, activity)
-    project = _get_project(activity)
+    project = _get_project(session, activity)
     for activity_input in _resolve_links(session, project, links=inputs):
         activity_input = core.get_entity(session, activity_input)
         core.add_link(session, activity,
@@ -78,8 +78,8 @@ def add_inputs(session, activity, inputs=[]):
                       inverse_rel='activities')
 
 
-def _get_project(activity):
-    project = core.get_entity(activity['links']['_collaboration_roots'][0])
+def _get_project(session, activity):
+    project = core.get_entity(session, activity['links']['_collaboration_roots'][0])
     return project
 
 
@@ -94,7 +94,7 @@ def remove_inputs(session, activity, inputs=[]):
 
 def add_outputs(session, activity, outputs=[]):
     activity = core.get_entity(session, activity)
-    project = _get_project(activity)
+    project = _get_project(session, activity)
     for activity_output in _resolve_links(session, project, links=outputs):
         activity_output = core.get_entity(session, activity_output)
         core.add_link(session, activity,
@@ -114,7 +114,7 @@ def remove_outputs(session, activity, outputs=[]):
 
 def add_related(session, activity, related=[]):
     activity = core.get_entity(session, activity)
-    project = _get_project(activity)
+    project = _get_project(session, activity)
     for activity_related in _resolve_links(session, project, links=related):
         activity_related = core.get_entity(session, activity_related)
         core.add_link(session, activity,

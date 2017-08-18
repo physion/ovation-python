@@ -132,11 +132,11 @@ def should_remove_link():
     rel_url = 'self-url'
 
     s = Mock(spec=session.Session)
-    s.get.return_value = {'links': [{'_id': sentinel.link_id,
-                                     'target_id': sentinel.target,
-                                     'inverse_rel': sentinel.inverse_rel},
-                                    {'target_id': sentinel.target2,
-                                     'inverse_rel': sentinel.inverse_rel2}]}
+    s.get.return_value = [{'_id': sentinel.link_id,
+                           'target_id': sentinel.target,
+                           'inverse_rel': sentinel.inverse_rel},
+                          {'target_id': sentinel.target2,
+                           'inverse_rel': sentinel.inverse_rel2}]
     s.delete.return_value = sentinel.result
     s.path.return_value = sentinel.url
 

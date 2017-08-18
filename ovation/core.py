@@ -45,6 +45,7 @@ def add_link(session, entity,
 def remove_link(session, entity,
                 target=None,
                 rel=None):
+
     if target is None:
         raise Exception("Target required")
     if rel is None:
@@ -54,7 +55,7 @@ def remove_link(session, entity,
     if (not 'relationships' in entity) or (not rel in entity['relationships']):
         raise Exception("Entity does not have a rel {}".format(rel))
 
-    relationships = session.get(entity['relationships'][rel]['self'])['links']
+    relationships = session.get(entity['relationships'][rel]['self'])
     for r in relationships:
         if r['target_id'] == target:
             session.delete(session.path('relationships',

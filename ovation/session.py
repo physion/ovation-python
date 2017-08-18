@@ -40,7 +40,7 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
     return None
 
 
-def connect(email, token=None, api=DEFAULT_HOST):
+def connect(email, token=None, api=DEFAULT_HOST, org=0):
     """Creates a new Session.
     
     Arguments
@@ -50,6 +50,9 @@ def connect(email, token=None, api=DEFAULT_HOST):
 
     token : string, optional
         Ovation.io API token.
+
+    org : integer, optional
+        Organization Id. Default 0.
     
     Returns
     -------
@@ -60,12 +63,12 @@ def connect(email, token=None, api=DEFAULT_HOST):
 
     saved_token = read_saved_token(email, url=api)
     if saved_token:
-        return Session(saved_token, api=api)
+        return Session(saved_token, api=api, org=org)
 
     if token is None:
         token = getpass("Ovation API token: ")
 
-    return Session(token, api=api)
+    return Session(token, api=api, org=org)
 
 
 def simplify_response(data, hoist_singleton=True):

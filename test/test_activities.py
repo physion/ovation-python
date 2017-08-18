@@ -25,8 +25,9 @@ def should_create_activity(isfile, upload_file, simplify_response):
 
     s = Mock(spec=session.Session)
     post_activity_return = {'type': core.ACTIVITY_TYPE}
-    s.post.return_value = {'entities': [post_activity_return]}
+    s.post.return_value = {'activities': [post_activity_return]}
     simplify_response.return_value = sentinel.activity
+    s.path.return_value = sentinel.activities_url
 
     output_path = '/some/path.txt'
     isfile.return_value = True
@@ -54,5 +55,5 @@ def should_create_activity(isfile, upload_file, simplify_response):
 
     assert_is_not_none(activity)
     upload_file.assert_called_with(s, proj, output_path)
-    s.post.assert_called_with(sentinel.project_self, data={'entities': [expected_post]})
+    s.post.assert_called_with(sentinel.activities_url, data={'activities': [expected_post]})
     simplify_response.assert_called_once_with(post_activity_return)
