@@ -111,7 +111,7 @@ class Session(object):
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
 
-    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3):
+    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3, org=0):
         """
         Creates a new Session
         :param token: Ovation API token
@@ -126,6 +126,7 @@ class Session(object):
         self.api_base = api
         self.prefix = prefix
         self.retry = retry if retry is not None else 0
+        self.org = org
 
         class BearerAuth(object):
             def __init__(self, token):
@@ -168,8 +169,7 @@ class Session(object):
 
         return urljoin(self.api_base, path)
 
-    @staticmethod
-    def path(resource='entities', entity_id=None, org=0, include_org=True):
+    def path(self, resource='entities', entity_id=None, org=None, include_org=True):
         """Makes a resource path
         
             >>> Session.path('projects')
@@ -179,6 +179,9 @@ class Session(object):
         :param entity_id: Optional single entity ID
         :return: complete resource path
         """
+
+        organization_id = org if org is not None else self.org
+
         resource = resource.lower()
 
         if not resource.endswith('s'):
@@ -186,21 +189,15 @@ class Session(object):
 
 
         if include_org:
-            path = '/o/{org}/{resource}/'.format(org=org, resource=resource)
+            path = '/o/{org}/{resource}/'.format(org=organization_id, resource=resource)
         else:
-            path = '/{resource}/'.format(org=org, resource=resource)
+            path = '/{resource}/'.format(org=organization_id, resource=resource)
 
         if entity_id:
             path = path + str(entity_id)
 
         return path
 
-    @staticmethod
-    @deprecated
-    def entity_path(resource='entities', entity_id=None):
-        """DEPRECATED.
-        :see: ovation.session.Session.path"""
-        return Session.path(resource=resource, entity_id=entity_id)
 
     def retry_call(self, m, *args, **kwargs):
         return retrying.Retrying(stop_max_attempt_number=self.retry + 1,
