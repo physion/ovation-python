@@ -24,15 +24,20 @@ def _resolve_links(session, project, links=[]):
 
 def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
     """
-    Creates a new Activity.
+    Creates a new Activity within the given project.
+
+    Activity inputs, outputs and related files may be specified at creation. Inputs
+    may be Sources Revisions. Outputs and Related files must be Revisions. Each
+    may be specified as a UUID, entity dict, or local path. For local paths, the
+    local file will be uploaded to the Activity's project.
 
     :param session: ovation.session.Session
     :param project: Project (dict or Id)
     :param name: activity name
     :param inputs: input Revisions or Sources (dicts or Ids), or local file paths
     :param outputs: output Revisions (dicts or Ids) or local file paths
-    :param related:
-    :return:
+    :param related: action Revisions (dicts or Ids) or local file paths
+    :return: new activity
     """
     logging.debug("Getting project")
     project = core.get_entity(session, project)
@@ -68,6 +73,20 @@ def create_activity(session, project, name, inputs=[], outputs=[], related=[]):
 
 
 def add_inputs(session, activity, inputs=[]):
+    """
+    Adds inputs to an existing activity.
+
+    Inputs may be Sources or Revisions, specified as UUIDs or entity dics. In addition,
+    local files may be specified by file path. Local files will be uploaded to the
+    Activity's project and the newly created Revision added as an input to
+    the Activity.
+
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param inputs: array of UUIDs, dicts, or local file paths of inputs to add
+    :return:
+    """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
     for activity_input in _resolve_links(session, project, links=inputs):
@@ -84,6 +103,16 @@ def _get_project(session, activity):
 
 
 def remove_inputs(session, activity, inputs=[]):
+    """
+    Removes inputs from the given activity.
+
+    Inputs may be Sources or Revisions, specified as UUIDs or entity dics.
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param inputs: array of UUIDs or dicts
+    :return:
+    """
     activity = core.get_entity(session, activity)
     for activity_input in inputs:
         activity_input = core.get_entity(session, activity_input)
@@ -93,6 +122,19 @@ def remove_inputs(session, activity, inputs=[]):
 
 
 def add_outputs(session, activity, outputs=[]):
+    """
+    Adds outputs to an existing activity.
+
+    Outputs are Revisions, specified as UUIDs or entity dics. In addition,
+    local files may be specified by file path. Local files will be uploaded to the
+    Activity's project and the newly created Revision added as an output to
+    the Activity.
+
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param outputs: array of UUIDs, dicts, or local file paths of outputs to add
+    """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
     for activity_output in _resolve_links(session, project, links=outputs):
@@ -104,6 +146,16 @@ def add_outputs(session, activity, outputs=[]):
 
 
 def remove_outputs(session, activity, outputs=[]):
+    """
+    Removes outputs from the given activity.
+
+    Outputs are Revisions, specified as UUIDs or entity dics.
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param outputs: array of UUIDs or dicts
+    :return:
+    """
     activity = core.get_entity(session, activity)
     for activity_output in outputs:
         activity_output = core.get_entity(session, activity_output)
@@ -113,6 +165,19 @@ def remove_outputs(session, activity, outputs=[]):
 
 
 def add_related(session, activity, related=[]):
+    """
+    Adds related Revisions to an existing activity.
+
+    Related Revisions are specified as UUIDs or entity dics. In addition,
+    local files may be specified by file path. Local files will be uploaded to the
+    Activity's project and the newly created Revision added as a related Revision to
+    the Activity.
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param related: array of Revision UUIDs or Dicts
+    :return:
+    """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
     for activity_related in _resolve_links(session, project, links=related):
@@ -124,6 +189,16 @@ def add_related(session, activity, related=[]):
 
 
 def remove_related(session, activity, related=[]):
+    """
+    Removes related Revisions from the given activity.
+
+    Related Revisions are Revisions, specified as UUIDs or entity dics.
+
+    :param session: ovation.session.Session
+    :param activity: activity UUID or Dict
+    :param related: array of UUIDs or dicts
+    :return:
+    """
     activity = core.get_entity(session, activity)
     for activity_related in related:
         activity_related = core.get_entity(session, activity_related)

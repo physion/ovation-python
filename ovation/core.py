@@ -46,6 +46,15 @@ def remove_link(session, entity,
                 target=None,
                 rel=None):
 
+    """
+    Removes relationship links from entity to the target with the given `rel`.
+
+    :param session: ovation.session.Session
+    :param entity: relationship source entity (dict or ID)
+    :param target: relationship target ID
+    :param rel: relationship `rel`
+    """
+
     if target is None:
         raise Exception("Target required")
     if rel is None:
