@@ -52,7 +52,7 @@ def connect(email, token=None, api=DEFAULT_HOST, org=0):
         Ovation.io API token.
 
     org : integer, optional
-        Organization Id. Default 0.
+        Organization Id. Default 0 indicates Personal Projects.
     
     Returns
     -------
@@ -121,6 +121,7 @@ class Session(object):
         :param api: API endpoint URL (default https://api.ovation.io)
         :param prefix: API namespace prefix (default '/api/v1')
         :param retry: number of retries API calls will retry on failure. If 0, no retry.
+        :param org: Organization Id. Default (0) indicates personal projects.
         :return: Session object
         """
         self.session = requests.Session()
