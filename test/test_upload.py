@@ -29,7 +29,7 @@ def should_create_revision(boto_session, getsize):
     def entity_path(type='', id=''):
         return "/api/v1/{}/{}".format(type, id)
 
-    s.entity_path.side_effect = entity_path
+    s.path.side_effect = entity_path
     aws_session = Mock()
     s3 = Mock()
     boto_session.return_value = aws_session
@@ -86,7 +86,7 @@ def should_create_revision_from_file_obj(boto_session, getsize):
     def entity_path(type='', id=''):
         return "/api/v1/{}/{}".format(type, id)
 
-    s.entity_path.side_effect = entity_path
+    s.path.side_effect = entity_path
     aws_session = Mock()
     s3 = Mock()
     boto_session.return_value = aws_session
@@ -146,7 +146,7 @@ def should_set_multipart_chunk_size(boto_session, getsize):
     def entity_path(type='', id=''):
         return "/api/v1/{}/{}".format(type, id)
 
-    s.entity_path.side_effect = entity_path
+    s.path.side_effect = entity_path
     aws_session = Mock()
     s3 = Mock()
     boto_session.return_value = aws_session

@@ -15,7 +15,7 @@ def _create_resource_group(session, activity, name, parent=None):
     if parent is not None:
         body['resource_group']['parent_id'] = parent
 
-    return session.post(session.entity_path('resource_groups'), data=body)
+    return session.post(session.path('resource_groups'), data=body)
 
 
 def upload_resource(session, entity_id, local_path, label=None, resource_group=None, progress=tqdm):
@@ -42,17 +42,17 @@ def upload_resource(session, entity_id, local_path, label=None, resource_group=N
     if resource_group is not None:
         data['resource']['resource_group_id'] = resource_group.id
 
-    r = session.post(session.entity_path('resources'), data=data)
+    r = session.post(session.path('resources'), data=data)
     aws = r['aws']
 
     upload.upload_to_aws(aws, content_type, local_path, progress)
 
-    metadata = session.get(session.entity_path('resources', r.id) + "/metadata")
+    metadata = session.get(session.path('resources', r.id) + "/metadata")
 
     r.version = metadata.version_id
     r.type = 'resource'
 
-    return session.put(session.entity_path('resources', r.id), entity=r)
+    return session.put(session.path('resources', r.id), entity=r)
 
 
 def upload_resource_group(session, activity, local_directory_path, label=None, progress=tqdm, parent_id=None):

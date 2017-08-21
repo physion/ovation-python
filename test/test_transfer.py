@@ -37,7 +37,7 @@ def should_create_file(create_file, boto_session, guess_content_type):
                                                   'secret_access_key': sentinel.secret_access_key,
                                                   'session_token': sentinel.session_token}}]}
     session.put.return_value = sentinel.updated_revision
-    session.entity_path.return_value = sentinel.put_path
+    session.path.return_value = sentinel.put_path
 
     guess_content_type.return_value = sentinel.content_type
 

@@ -6,6 +6,71 @@ FOLDER_TYPE = 'Folder'
 FILE_TYPE = 'File'
 REVISION_TYPE = 'Revision'
 PROJECT_TYPE = 'Project'
+ACTIVITY_TYPE = 'Activity'
+
+
+def add_link(session, entity,
+             target=None,
+             rel=None,
+             inverse_rel=None):
+    """
+    Adds a new relationship link from entity to the target. All relationships in
+    Ovation are many-to-many.
+
+    :param session: ovation.session.Session
+    :param entity: relationship source entity (dict or ID)
+    :param target: relationship target ID
+    :param rel: relationship `rel`
+    :param inverse_rel: inverse relationship (optional)
+    :return: {'links': [LinkInfo],
+                'entities': [Updated entities]}
+    """
+
+    if target is None:
+        raise Exception("Target required")
+    if rel is None:
+        raise Exception("Rel required")
+
+    entity = get_entity(session, entity)
+    if (not 'relationships' in entity) or (not rel in entity['relationships']):
+        raise Exception("Entity does not have a rel {}".format(rel))
+
+    link = {'target_id': target}
+    if inverse_rel:
+        link['inverse_rel'] = inverse_rel
+
+    return session.post(entity['relationships'][rel]['self'], data=[link])
+
+
+def remove_link(session, entity,
+                target=None,
+                rel=None):
+
+    """
+    Removes relationship links from entity to the target with the given `rel`.
+
+    :param session: ovation.session.Session
+    :param entity: relationship source entity (dict or ID)
+    :param target: relationship target ID
+    :param rel: relationship `rel`
+    """
+
+    if target is None:
+        raise Exception("Target required")
+    if rel is None:
+        raise Exception("Rel required")
+
+    entity = get_entity(session, entity)
+    if (not 'relationships' in entity) or (not rel in entity['relationships']):
+        raise Exception("Entity does not have a rel {}".format(rel))
+
+    relationships = session.get(entity['relationships'][rel]['self'])
+    for r in relationships:
+        if r['target_id'] == target:
+            session.delete(session.path('relationships',
+                                        entity_id=r['_id'],
+                                        org=entity['organization_id']))
+
 
 def create_file(session, parent, name, attributes=None):
     """
@@ -29,7 +94,7 @@ def _create_contents(session, entity_type, parent, name, attributes=None):
         attributes = {}
 
     if isinstance(parent, six.string_types):
-        parent = session.get(session.entity_path('entities', entity_id=parent))
+        parent = session.get(session.path('entities', entity_id=parent))
 
     attributes.update({'name': name})
 
@@ -73,7 +138,7 @@ def delete_entity(session, entity):
     except TypeError:
         id = entity
 
-    return session.delete(session.entity_path(entity_id=id))
+    return session.delete(session.path(entity_id=id))
 
 
 def undelete_entity(session, entity):
@@ -88,7 +153,7 @@ def undelete_entity(session, entity):
     if isinstance(entity, six.string_types):
         entity = get_entity(session, entity, include_trash=True)
 
-    return session.put(session.entity_path(entity_id=entity['_id']) + "/restore", entity)
+    return session.put(session.path(entity_id=entity['_id']) + "/restore", entity)
 
 
 def get_entity(session, id, include_trash=False):
@@ -102,7 +167,7 @@ def get_entity(session, id, include_trash=False):
     """
 
     if isinstance(id, six.string_types):
-        return session.get(session.entity_path(entity_id=id), params={"trash": str(include_trash).lower()})
+        return session.get(session.path(entity_id=id), params={"trash": str(include_trash).lower()})
 
     return id
 
@@ -113,4 +178,4 @@ def get_projects(session):
     :param session: ovation.session.Session
     :return: list of Projects
     """
-    return session.get(session.entity_path(resource='projects'))
+    return session.get(session.path(resource='projects'))

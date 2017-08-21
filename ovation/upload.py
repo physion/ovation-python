@@ -130,7 +130,7 @@ def upload_revision(session,
     """
 
     if isinstance(parent_file, six.string_types):
-        parent_file = session.get(session.entity_path('file', entity_id=parent_file))
+        parent_file = session.get(session.path('file', entity_id=parent_file))
 
     if file_name is None:
         file_name = os.path.basename(local_path)
