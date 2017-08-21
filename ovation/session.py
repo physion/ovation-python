@@ -40,7 +40,7 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
     return None
 
 
-def connect(email, token=None, api=DEFAULT_HOST):
+def connect(email, token=None, api=DEFAULT_HOST, org=0):
     """Creates a new Session.
     
     Arguments
@@ -50,6 +50,9 @@ def connect(email, token=None, api=DEFAULT_HOST):
 
     token : string, optional
         Ovation.io API token.
+
+    org : integer, optional
+        Organization Id. Default 0 indicates Personal Projects.
     
     Returns
     -------
@@ -60,12 +63,12 @@ def connect(email, token=None, api=DEFAULT_HOST):
 
     saved_token = read_saved_token(email, url=api)
     if saved_token:
-        return Session(saved_token, api=api)
+        return Session(saved_token, api=api, org=org)
 
     if token is None:
         token = getpass("Ovation API token: ")
 
-    return Session(token, api=api)
+    return Session(token, api=api, org=org)
 
 
 def simplify_response(data, hoist_singleton=True):
@@ -111,13 +114,14 @@ class Session(object):
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
 
-    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3):
+    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3, org=0):
         """
         Creates a new Session
         :param token: Ovation API token
         :param api: API endpoint URL (default https://api.ovation.io)
         :param prefix: API namespace prefix (default '/api/v1')
         :param retry: number of retries API calls will retry on failure. If 0, no retry.
+        :param org: Organization Id. Default (0) indicates personal projects.
         :return: Session object
         """
         self.session = requests.Session()
@@ -126,6 +130,7 @@ class Session(object):
         self.api_base = api
         self.prefix = prefix
         self.retry = retry if retry is not None else 0
+        self.org = org
 
         class BearerAuth(object):
             def __init__(self, token):
@@ -168,8 +173,7 @@ class Session(object):
 
         return urljoin(self.api_base, path)
 
-    @staticmethod
-    def path(resource='entities', entity_id=None, org=0, include_org=True):
+    def path(self, resource='entities', entity_id=None, org=None, include_org=True):
         """Makes a resource path
         
             >>> Session.path('projects')
@@ -179,6 +183,9 @@ class Session(object):
         :param entity_id: Optional single entity ID
         :return: complete resource path
         """
+
+        organization_id = org if org is not None else self.org
+
         resource = resource.lower()
 
         if not resource.endswith('s'):
@@ -186,21 +193,15 @@ class Session(object):
 
 
         if include_org:
-            path = '/o/{org}/{resource}/'.format(org=org, resource=resource)
+            path = '/o/{org}/{resource}/'.format(org=organization_id, resource=resource)
         else:
-            path = '/{resource}/'.format(org=org, resource=resource)
+            path = '/{resource}/'.format(org=organization_id, resource=resource)
 
         if entity_id:
             path = path + str(entity_id)
 
         return path
 
-    @staticmethod
-    @deprecated
-    def entity_path(resource='entities', entity_id=None):
-        """DEPRECATED.
-        :see: ovation.session.Session.path"""
-        return Session.path(resource=resource, entity_id=entity_id)
 
     def retry_call(self, m, *args, **kwargs):
         return retrying.Retrying(stop_max_attempt_number=self.retry + 1,

@@ -6,6 +6,71 @@ FOLDER_TYPE = 'Folder'
 FILE_TYPE = 'File'
 REVISION_TYPE = 'Revision'
 PROJECT_TYPE = 'Project'
+ACTIVITY_TYPE = 'Activity'
+
+
+def add_link(session, entity,
+             target=None,
+             rel=None,
+             inverse_rel=None):
+    """
+    Adds a new relationship link from entity to the target. All relationships in
+    Ovation are many-to-many.
+
+    :param session: ovation.session.Session
+    :param entity: relationship source entity (dict or ID)
+    :param target: relationship target ID
+    :param rel: relationship `rel`
+    :param inverse_rel: inverse relationship (optional)
+    :return: {'links': [LinkInfo],
+                'entities': [Updated entities]}
+    """
+
+    if target is None:
+        raise Exception("Target required")
+    if rel is None:
+        raise Exception("Rel required")
+
+    entity = get_entity(session, entity)
+    if (not 'relationships' in entity) or (not rel in entity['relationships']):
+        raise Exception("Entity does not have a rel {}".format(rel))
+
+    link = {'target_id': target}
+    if inverse_rel:
+        link['inverse_rel'] = inverse_rel
+
+    return session.post(entity['relationships'][rel]['self'], data=[link])
+
+
+def remove_link(session, entity,
+                target=None,
+                rel=None):
+
+    """
+    Removes relationship links from entity to the target with the given `rel`.
+
+    :param session: ovation.session.Session
+    :param entity: relationship source entity (dict or ID)
+    :param target: relationship target ID
+    :param rel: relationship `rel`
+    """
+
+    if target is None:
+        raise Exception("Target required")
+    if rel is None:
+        raise Exception("Rel required")
+
+    entity = get_entity(session, entity)
+    if (not 'relationships' in entity) or (not rel in entity['relationships']):
+        raise Exception("Entity does not have a rel {}".format(rel))
+
+    relationships = session.get(entity['relationships'][rel]['self'])
+    for r in relationships:
+        if r['target_id'] == target:
+            session.delete(session.path('relationships',
+                                        entity_id=r['_id'],
+                                        org=entity['organization_id']))
+
 
 def create_file(session, parent, name, attributes=None):
     """

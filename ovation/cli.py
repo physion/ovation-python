@@ -7,11 +7,13 @@ import ovation.upload as upload
 import ovation.download as download
 import ovation.contents as contents
 import ovation.session as session
+import ovation.activities as activities
 
 
 def main():
     parser = argparse.ArgumentParser(prog='python -m ovation.cli')
     parser.add_argument('-u', '--user', help='Ovation user email')
+    parser.add_argument('-o', '--organization', help='Organization Id', default=0)
 
     subparsers = parser.add_subparsers(title='Available subcommands',
                                        description='Use `python -m ovation.cli <subcommand> -h` for additional help')
@@ -42,12 +44,53 @@ def main():
 
     parser_ls.set_defaults(func=contents.list_contents_main)
 
+    # ACTIVITIES
+    activities_create = subparsers.add_parser('create-activity', description='Create a new Activity')
+    activities_create.add_argument('-n', '--name', help='New activity name', required=True)
+    activities_create.add_argument('-p', '--project', help='Project UUID')
+    activities_create.add_argument('--input', action='append', help='Input Source or Revision UUIDs')
+    activities_create.add_argument('--output', action='append', help='Outpur Revision UUIDs')
+    activities_create.add_argument('--related', action='append', help='Related Revision UUIDs')
+    activities_create.set_defaults(func=activities.create_main)
+
+    activities_add_inputs = subparsers.add_parser('add-inputs', description='Add inputs to an activity')
+    activities_add_inputs.add_argument('activity_id', help='Activity UUID')
+    activities_add_inputs.add_argument('inputs', nargs='+', help='Input Source or Revision UUIDs')
+    activities_add_inputs.set_defaults(func=activities.add_inputs_main)
+
+    activities_remove_inputs = subparsers.add_parser('remove-inputs', description='Remove inputs to an activity')
+    activities_remove_inputs.add_argument('activity_id', help='Activity UUID')
+    activities_remove_inputs.add_argument('inputs', nargs='+', help='Input Source or Revision UUIDs')
+    activities_remove_inputs.set_defaults(func=activities.remove_inputs_main)
+
+    activities_add_outputs = subparsers.add_parser('add-outputs', description='Add outputs from an activity')
+    activities_add_outputs.add_argument('activity_id', help='Activity UUID')
+    activities_add_outputs.add_argument('outputs', nargs='+', help='Output Revision UUIDs')
+    activities_add_outputs.set_defaults(func=activities.add_outputs_main)
+
+    activities_remove_outputs = subparsers.add_parser('remove-outputs', description='Remove outputs from an activity')
+    activities_remove_outputs.add_argument('activity_id', help='Activity UUID')
+    activities_remove_outputs.add_argument('outputs', nargs='+', help='Output Revision UUIDs')
+    activities_remove_outputs.set_defaults(func=activities.remove_outputs_main)
+
+    activities_add_related = subparsers.add_parser('add-related', description='Add files related to an activity')
+    activities_add_related.add_argument('activity_id', help='Activity UUID')
+    activities_add_related.add_argument('related', nargs='+', help='Related Revision UUIDs')
+    activities_add_related.set_defaults(func=activities.add_related_main)
+
+
+    activities_remove_related = subparsers.add_parser('remove-related', description='Remove files related to an activity')
+    activities_remove_related.add_argument('activity_id', help='Activity UUID')
+    activities_remove_related.add_argument('related', nargs='+', help='Related Revision UUIDs')
+    activities_remove_related.set_defaults(func=activities.remove_related_main)
+
+
     args = parser.parse_args()
 
     if args.user is None:
         args.user = input('Email: ')
 
-    s = session.connect(args.user)
+    s = session.connect(args.user, org=args.organization)
     args.session = s
 
     args.func(args)

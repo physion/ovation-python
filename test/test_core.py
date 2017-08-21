@@ -106,3 +106,42 @@ def should_return_existing_entity_dict():
 
     assert_equal(core.get_entity(sentinel.session, sentinel.entity_dict),
                  sentinel.entity_dict)
+
+
+@istest
+def should_add_link():
+    entity = {'relationships': {'foo': {'self': 'self-url'}}}
+    rel_url = 'self-url'
+
+    s = Mock(spec=session.Session)
+    s.post.return_value = sentinel.result
+
+    expected_post = [{'target_id': sentinel.target,
+                      'inverse_rel': sentinel.inverse_rel}]
+
+    core.add_link(s, entity, target=sentinel.target, rel='foo', inverse_rel=sentinel.inverse_rel)
+
+    s.post.assert_called_once_with(rel_url, data=expected_post)
+
+
+@istest
+def should_remove_link():
+    entity = {'_id': sentinel.entity_id,
+              'relationships': {'foo': {'self': 'self-url'}},
+              'organization_id': sentinel.org}
+    rel_url = 'self-url'
+
+    s = Mock(spec=session.Session)
+    s.get.return_value = [{'_id': sentinel.link_id,
+                           'target_id': sentinel.target,
+                           'inverse_rel': sentinel.inverse_rel},
+                          {'target_id': sentinel.target2,
+                           'inverse_rel': sentinel.inverse_rel2}]
+    s.delete.return_value = sentinel.result
+    s.path.return_value = sentinel.url
+
+    core.remove_link(s, entity, target=sentinel.target, rel='foo')
+
+    s.get.assert_called_once_with(rel_url)
+    s.path.assert_called_with('relationships', entity_id=sentinel.link_id, org=sentinel.org)
+    s.delete.assert_called_once_with(sentinel.url)
