@@ -31,7 +31,7 @@ def should_create_activity(isfile, upload_file, simplify_response):
 
     output_path = '/some/path.txt'
     isfile.return_value = True
-    upload_file.return_value = output_revision
+    upload_file.return_value = {'revision': output_revision}
 
     expected_post = {'type': core.ACTIVITY_TYPE,
                      'attributes': {'name': sentinel.activity_name},

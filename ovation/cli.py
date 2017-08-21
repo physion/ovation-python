@@ -84,7 +84,7 @@ def main():
     activities_remove_related.add_argument('related', nargs='+', help='Related Revision UUIDs')
     activities_remove_related.set_defaults(func=activities.remove_related_main)
 
-    
+
     args = parser.parse_args()
 
     if args.user is None:

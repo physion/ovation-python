@@ -18,7 +18,7 @@ def _resolve_links(session, project, links=[], progress=tqdm):
         if isinstance(link, six.string_types) and os.path.isfile(link):
             logging.debug("Uploading input %s", link)
             revision = upload.upload_file(session, project,
-                                          link)
+                                          link)['revision']
             resolved_links.append(revision)
         else:
             resolved_links.append(core.get_entity(session, link))
@@ -93,7 +93,8 @@ def add_inputs(session, activity, inputs=[], progress=tqdm):
     """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
-    for activity_input in progress(_resolve_links(session, project, links=inputs, progress=progress)):
+    for activity_input in progress(_resolve_links(session, project, links=inputs, progress=progress),
+                                   unit='inputs'):
         activity_input = core.get_entity(session, activity_input)
         core.add_link(session, activity,
                       target=activity_input['_id'],
@@ -118,7 +119,7 @@ def remove_inputs(session, activity, inputs=[], progress=tqdm):
     :return:
     """
     activity = core.get_entity(session, activity)
-    for activity_input in progress(inputs):
+    for activity_input in progress(inputs, unit='inputs'):
         activity_input = core.get_entity(session, activity_input)
         core.remove_link(session, activity,
                          target=activity_input['_id'],
@@ -141,7 +142,8 @@ def add_outputs(session, activity, outputs=[], progress=tqdm):
     """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
-    for activity_output in progress(_resolve_links(session, project, links=outputs, progress=progress)):
+    for activity_output in progress(_resolve_links(session, project, links=outputs, progress=progress),
+                                    unit='outputs'):
         activity_output = core.get_entity(session, activity_output)
         core.add_link(session, activity,
                       target=activity_output['_id'],
@@ -161,7 +163,8 @@ def remove_outputs(session, activity, outputs=[], progress=tqdm):
     :return:
     """
     activity = core.get_entity(session, activity)
-    for activity_output in progress(outputs):
+    for activity_output in progress(outputs,
+                                    unit='outputs'):
         activity_output = core.get_entity(session, activity_output)
         core.remove_link(session, activity,
                          target=activity_output['_id'],
@@ -184,7 +187,8 @@ def add_related(session, activity, related=[], progress=tqdm):
     """
     activity = core.get_entity(session, activity)
     project = _get_project(session, activity)
-    for activity_related in progress(_resolve_links(session, project, links=related, progress=progress)):
+    for activity_related in progress(_resolve_links(session, project, links=related, progress=progress),
+                                     unit='files'):
         activity_related = core.get_entity(session, activity_related)
         core.add_link(session, activity,
                       target=activity_related['_id'],
@@ -204,7 +208,8 @@ def remove_related(session, activity, related=[], progress=tqdm):
     :return:
     """
     activity = core.get_entity(session, activity)
-    for activity_related in progress(related):
+    for activity_related in progress(related,
+                                     unit='files'):
         activity_related = core.get_entity(session, activity_related)
         core.remove_link(session, activity,
                          target=activity_related['_id'],
