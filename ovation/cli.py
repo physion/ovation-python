@@ -48,6 +48,8 @@ def main():
     activities_create = subparsers.add_parser('create-activity', description='Create a new Activity')
     activities_create.add_argument('-n', '--name', help='New activity name', required=True)
     activities_create.add_argument('-p', '--project', help='Project UUID')
+    activities_create.add_argument('--json', action='store_true', help="Output Activity ID as JSON", default=False)
+    activities_create.add_argument('--concise', help='Output Activity ID suitable for assignment to a shell variable', action='store_true', default=False)
     activities_create.add_argument('--input', action='append', help='Input Source or Revision UUIDs')
     activities_create.add_argument('--output', action='append', help='Outpur Revision UUIDs')
     activities_create.add_argument('--related', action='append', help='Related Revision UUIDs')
@@ -77,7 +79,6 @@ def main():
     activities_add_related.add_argument('activity_id', help='Activity UUID')
     activities_add_related.add_argument('related', nargs='+', help='Related Revision UUIDs')
     activities_add_related.set_defaults(func=activities.add_related_main)
-
 
     activities_remove_related = subparsers.add_parser('remove-related', description='Remove files related to an activity')
     activities_remove_related.add_argument('activity_id', help='Activity UUID')

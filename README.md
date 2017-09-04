@@ -29,7 +29,12 @@ To create a session, connect using your Ovation user email and password:
     my_session = connect('example@ovation.io')
 
 
-You can supply your password as a `password=...` keyword parameter if you're using the Ovation API from a script. But for most cases, you'll want to let the Ovation API prompt you for your password (this works in the Python/IPython terminal or in a Jupyter notebook).
+You can supply your API access token with the `token` keyword parameter if you're using the Ovation API from a script. 
+But for most cases, you'll want to let the Ovation API prompt you for your token (this works in the Python/IPython terminal or in a Jupyter notebook).
+
+If you are a member of an organization, supply the organization's Id as the `org` keyword parameter:
+
+    my_org_session = connect('example@ovation.io', org=42)
 
 ### API tokens
 
@@ -81,6 +86,8 @@ Use the `ovation.cli` module's `upload` command to upload files from your local 
 
 for more info.
 
+See [here](examples/file-upload.ipynb) for an example of uploading files programmatically. 
+
 ### Downloading files from the terminal
 
 Use the `ovation.cli` module's `download` command to download a `Revision` from Ovation to your local file system. Try
@@ -92,3 +99,41 @@ for more info.
 If you supply a `Project` or `Folder` ID as the download source, this command will recursively download the contents of the Project or Folder. **Be careful—this may download a lot of data**.
 
 If you supply a `File` ID as the download source, this command will download the most recent version of the file.
+
+
+### Creating an activity
+
+Use the `ovation.cli` module's `create-activity` command to create a new `Activity` record. Try
+
+    python -m ovation.cli create-activity -h
+    
+for more info.
+
+You must supply a parent `Project` and activity name. In addition you can supply `inputs`, and `outputs` (`Revisions` or `Sources`) as UUIDs or local file paths. Local files will be uploaded to the parent project.
+
+See [here](examples/activities.ipynb) for an example of creating an Activity programmatically.
+
+### Adding inputs to an activity
+
+Use the `ovation.cli` module's `add-inputs` command to add new `Revision` or `Source` inputs to an `Activity` record. Try
+
+    python -m ovation.cli add-inputs -h
+    
+for more info.
+
+You can specify `inputs` (`Revisions` or `Sources`) as UUIDs or local file paths. Local files will be uploaded to the parent project.
+
+See [here](examples/activities.ipynb) for an example of adding inputs to an Activity programmatically.
+
+### Adding outputs to an activity
+
+Use the `ovation.cli` module's `add-outputs` command to add new `Revision` or `Source` outputs to an `Activity` record. Try
+
+    python -m ovation.cli add-outputs -h
+    
+for more info.
+
+You can specify `outputs` (`Revisions` or `Sources`) as UUIDs or local file paths. Local files will be uploaded to the parent project.
+
+See [here](examples/activities.ipynb) for an example of adding outputs to an Activity programmatically.
+

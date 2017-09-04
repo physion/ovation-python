@@ -1,3 +1,4 @@
+import json
 import logging
 import os.path
 
@@ -232,6 +233,14 @@ def create_main(args):
     related = args.related or []
 
     activity = create_activity(session, project_id, name, inputs=inputs, outputs=outputs, related=related)
+
+    if args.json:
+        print(json.dumps({"activity": activity._id}))
+        return
+
+    if args.concise:
+        print(activity._id)
+        return
 
     print("Created activity: {}".format(activity._id))
 
