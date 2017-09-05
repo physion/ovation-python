@@ -156,18 +156,22 @@ def undelete_entity(session, entity):
     return session.put(session.path(entity_id=entity['_id']) + "/restore", entity)
 
 
-def get_entity(session, id, include_trash=False):
+def get_entity(session, id, include_trash=False, include_annotations=False):
     """
     Gets an entity by ID
 
     :param session: ovation.session.Session
     :param id: entity ID
     :param: include_trash: if true, return trashed entities
-    :return: entity Dict
+    :param: include_annotations: if true, include annotations with results
+    :return: entity Dict or {"entity": <entity>, "includes": [..includes..]} if include_annotations is True
     """
 
     if isinstance(id, six.string_types):
-        return session.get(session.path(entity_id=id), params={"trash": str(include_trash).lower()})
+        params = {"trash": str(include_trash).lower()}
+        if include_annotations:
+            params["includes"] = "annotations"
+        return session.get(session.path(entity_id=id), params=params)
 
     return id
 
