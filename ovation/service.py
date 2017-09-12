@@ -46,6 +46,8 @@ def get_service_token(client_id, client_secret,
     response = requests.post(token_url,
                              json=body)
 
+    response.raise_for_status()
+
     token = response.json()
 
     expires_at = token['expires_in'] + time.time()
