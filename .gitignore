@@ -51,8 +51,6 @@ wrapper.build.venv/
 
 *.gz
 
-setup.cfg
-
 nose_xunit.xml
 
 # JARs
@@ -74,3 +72,7 @@ MANIFEST
 .transfer_checkpoint.csv
 
 example.m
+.cache/v/cache/lastfailed
+*.env
+dev.env
+codeship.aes

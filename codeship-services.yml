@@ -1,0 +1,15 @@
+version: '2'
+
+services:
+  library:
+    build:
+      image: ovation-python
+      dockerfile: Dockerfile
+    environment:
+      - PYTHONPATH=/app
+
+  pypi:
+    build:
+      dockerfile: Dockerfile
+    encrypted_env_file: pypi.env.encrypted
+
