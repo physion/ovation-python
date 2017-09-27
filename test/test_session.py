@@ -44,7 +44,7 @@ def should_make_type_index_url():
 def should_make_type_index_url_with_default_org():
     s = session.Session(sentinel.token)
 
-    assert_equal(s.path('project', False), '/o/0/projects/')
+    assert_equal(s.path('project'), '/o/0/projects/')
 
 
 @istest
@@ -72,6 +72,13 @@ def should_make_type_get_url_with_org():
     s = session.Session(sentinel.token)
 
     assert_equal(s.path('project', entity_id='123', org=235), '/o/235/projects/123')
+
+
+@istest
+def should_exclude_org_if_none():
+    s = session.Session(sentinel.token, org=None)
+
+    assert_equal(s.path('workflows', entity_id='123'), '/workflows/123')
 
 
 @istest

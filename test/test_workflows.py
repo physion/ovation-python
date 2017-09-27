@@ -97,3 +97,12 @@ def should_handle_existing_custom_attributes(upload):
                                                                         'foo': 'bar',
                                                                         'custom_attributes': {'bar': 'baz'}}})
     upload.assert_called_with(s, uuid, 'foo.txt', label='foo', progress=tqdm)
+
+
+@istest
+def should_get_workflow_samples():
+    workflow_id = 1
+    s = Mock(spec=Session)
+    s.path.return_value = sentinel.workflow_path
+    s.get.return_value = {'workflow': {}, 'resources': [], 'samples': [{'type': 'Sample'}]}
+    assert_equal(workflows.get_samples(s, workflow_id), [{'type': 'Sample'}])

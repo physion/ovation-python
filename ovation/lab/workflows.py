@@ -52,3 +52,19 @@ def create_activity(session, workflow_id, activity_label, activity=None,
 
 def get_activity(session, workflow, label):
     return session.get(workflow.relationships[label].related).activity
+
+
+def get_samples(session, workflow):
+    """
+    Gets all samples in a workflow.
+
+    :param session: ovation.session.Session
+    :param workflow: workflow Id or Dict
+    :return: list of Sample records
+    """
+
+    if isinstance(workflow, int):
+        wf = session.get(session.path('workflow', workflow))
+        return wf['samples']
+    else:
+        return workflow['samples']

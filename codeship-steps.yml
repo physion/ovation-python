@@ -1,0 +1,8 @@
+- name: tests
+  service: library
+  command: pytest
+
+- name: publish
+  tag: master
+  service: pypi
+  command: python setup.py bdist upload

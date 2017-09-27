@@ -15,6 +15,7 @@ from six.moves.urllib_parse import urljoin, urlparse
 from getpass import getpass
 
 DEFAULT_HOST = 'https://api.ovation.io'
+DEFAULT_LAB_HOST = 'https://lab-services.ovation.io'
 
 
 class DataDict(dict):
@@ -40,12 +41,15 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
     return None
 
 
+def connect_lab(email, token=None, api=DEFAULT_LAB_HOST):
+    return connect(email, token=token, api=api, org=None)
+
 def connect(email, token=None, api=DEFAULT_HOST, org=0):
     """Creates a new Session.
     
     Arguments
     ---------
-    email : string, optional
+    email : string
         Ovation.io account email. Required for selection of saved token.
 
     token : string, optional
@@ -191,8 +195,7 @@ class Session(object):
         if not resource.endswith('s'):
             resource += 's'
 
-
-        if include_org:
+        if include_org and (organization_id is not None):
             path = '/o/{org}/{resource}/'.format(org=organization_id, resource=resource)
         else:
             path = '/{resource}/'.format(org=organization_id, resource=resource)
@@ -201,7 +204,6 @@ class Session(object):
             path = path + str(entity_id)
 
         return path
-
 
     def retry_call(self, m, *args, **kwargs):
         return retrying.Retrying(stop_max_attempt_number=self.retry + 1,
