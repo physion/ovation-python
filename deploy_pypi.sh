@@ -8,4 +8,4 @@ echo "[pypi]" >> $FILE
 echo "username:$PYPI_USERNAME" >> $FILE
 echo "password:$PYPI_PASSWORD" >> $FILE
 
-python setup.py bdist upload
+python setup.py sdist upload
