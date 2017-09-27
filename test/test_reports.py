@@ -10,10 +10,10 @@ def test_uploads_incomplete_report_resource(upload_resource):
     req_id = sentinel.req_id
     path = sentinel.path
 
-    s.get.return_value = DataDict({'requisition': {'id': req_id,
-                                                   'organization_id': sentinel.org_id}})
+    s.get.return_value = DataDict({'requisition': {'id': req_id}})
 
     reports.upload_incomplete_report(s,
+                                     org=sentinel.org_id,
                                      requisition_id=req_id,
                                      path=path,
                                      progress=None)
@@ -27,13 +27,13 @@ def test_creates_incomplete_report(upload_resource):
     req_id = sentinel.req_id
     path = sentinel.path
 
-    s.get.return_value = DataDict({'requisition': {'id': req_id,
-                                                   'organization_id': sentinel.org_id}})
+    s.get.return_value = DataDict({'requisition': {'id': req_id}})
     s.path.return_value = sentinel.reports_path
 
     upload_resource.return_value = DataDict({'id': sentinel.resource_id})
 
     reports.upload_incomplete_report(s,
+                                     org=sentinel.org_id,
                                      requisition_id=req_id,
                                      path=path,
                                      progress=None)
