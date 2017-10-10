@@ -14,8 +14,7 @@ from ovation.session import Session
 
 from tqdm import tqdm
 from six.moves.urllib_parse import urlsplit
-from pprint import pprint
-from multiprocessing.pool import Pool  # ThreadPool as Pool
+from multiprocessing.pool import ThreadPool as Pool
 
 DEFAULT_CHUNK_SIZE = 1024 * 1024
 PROCESS_POOL_SIZE = 5
