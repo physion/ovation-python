@@ -5,4 +5,4 @@
 - name: publish
   tag: master
   service: pypi
-  command: python setup.py bdist upload
+  command: ./deploy_pypi.sh
