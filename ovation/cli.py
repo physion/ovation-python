@@ -14,6 +14,7 @@ def main():
     parser = argparse.ArgumentParser(prog='python -m ovation.cli')
     parser.add_argument('-u', '--user', help='Ovation user email')
     parser.add_argument('-o', '--organization', help='Organization Id', default=0)
+    parser.add_argument('-t', '--token', help='Ovation API token', default=None)
 
     subparsers = parser.add_subparsers(title='Available subcommands',
                                        description='Use `python -m ovation.cli <subcommand> -h` for additional help')
@@ -91,7 +92,7 @@ def main():
     if args.user is None:
         args.user = input('Email: ')
 
-    s = session.connect(args.user, org=args.organization)
+    s = session.connect(args.user, token=args.token, org=args.organization)
     args.session = s
 
     args.func(args)
@@ -99,3 +100,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
