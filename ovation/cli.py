@@ -89,7 +89,7 @@ def main():
 
     args = parser.parse_args()
 
-    if args.user is None:
+    if args.user is None and args.token is None:
         args.user = input('Email: ')
 
     s = session.connect(args.user, token=args.token, org=args.organization)
