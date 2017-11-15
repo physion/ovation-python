@@ -106,3 +106,12 @@ def should_get_workflow_samples():
     s.path.return_value = sentinel.workflow_path
     s.get.return_value = {'workflow': {}, 'resources': [], 'samples': [{'type': 'Sample'}]}
     assert_equal(workflows.get_samples(s, workflow_id), [{'type': 'Sample'}])
+
+@istest
+def should_get_workflow():
+    workflow_id = 1
+    s = Mock(spec=Session)
+    s.path.return_value = sentinel.workflow_path
+    s.get.return_value = {'workflow': sentinel.workflow}
+
+    assert_equal(workflows.get_workflow(s, workflow_id), sentinel.workflow)

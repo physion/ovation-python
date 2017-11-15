@@ -54,6 +54,10 @@ def get_activity(session, workflow, label):
     return session.get(workflow.relationships[label].related).activity
 
 
+def get_workflow(session, workflow):
+    return session.get(session.path('workflow'), workflow)['workflow']
+
+
 def get_samples(session, workflow):
     """
     Gets all samples in a workflow.
