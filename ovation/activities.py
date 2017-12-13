@@ -215,7 +215,7 @@ def start_compute(token, activity, image, url, progress=tqdm):
     headers = {'Authorization': 'Bearer {}'.format(token),
                'Content-Type': 'application/json'}
 
-    r = requests.post('http://test', data=json.dumps(data), headers=headers)
+    r = requests.post(url, data=json.dumps(data), headers=headers)
     print(r.status_code)
 
 
