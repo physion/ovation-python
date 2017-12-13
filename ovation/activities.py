@@ -7,6 +7,7 @@ import six
 import ovation.core as core
 import ovation.upload as upload
 import ovation.session
+import requests
 
 from tqdm import tqdm
 
@@ -197,6 +198,27 @@ def add_related(session, activity, related=[], progress=tqdm):
                       inverse_rel='procedures')
 
 
+def start_compute(token, activity, image, progress=tqdm):
+    """
+        Start the compute image from the given Activity.
+
+
+        :param token: user token
+        :param activity: activity UUID
+        :param image: compute image
+        :return:
+        """
+    data = {'activity_id': activity,
+            'image_name': image,
+            'organization': ''}
+
+    headers = {'Authorization': 'Bearer {}'.format(token),
+               'Content-Type': 'application/json'}
+
+    r = requests.post('http://test', data=json.dumps(data), headers=headers)
+    print(r.status_code)
+
+
 def remove_related(session, activity, related=[], progress=tqdm):
     """
     Removes related Revisions from the given activity.
@@ -282,3 +304,11 @@ def remove_related_main(args):
     activity = core.get_entity(session, args.activity_id)
 
     remove_related(session, activity, args.related or [])
+
+
+def start_compute_main(args):
+    token = args.token
+    activity = args.activity_id
+    image = args.image
+
+    start_compute(token, activity, image)
