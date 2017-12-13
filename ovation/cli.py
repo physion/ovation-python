@@ -89,6 +89,7 @@ def main():
     activities_start_compute = subparsers.add_parser('hpc-run', description='Start the compute to an activity')
     activities_start_compute.add_argument('activity_id', help='Activity UUID')
     activities_start_compute.add_argument('image', help='The name of the image to compute')
+    activities_start_compute.add_argument('url', help='The url of hpc-manager')
     activities_start_compute.set_defaults(func=activities.start_compute_main)
 
     args = parser.parse_args()

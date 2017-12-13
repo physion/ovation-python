@@ -198,7 +198,7 @@ def add_related(session, activity, related=[], progress=tqdm):
                       inverse_rel='procedures')
 
 
-def start_compute(token, activity, image, progress=tqdm):
+def start_compute(token, activity, image, url, progress=tqdm):
     """
         Start the compute image from the given Activity.
 
@@ -310,5 +310,6 @@ def start_compute_main(args):
     token = args.token
     activity = args.activity_id
     image = args.image
+    url = args.url
 
-    start_compute(token, activity, image)
+    start_compute(token, activity, image, url)
