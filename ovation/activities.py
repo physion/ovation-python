@@ -198,7 +198,7 @@ def add_related(session, activity, related=[], progress=tqdm):
                       inverse_rel='procedures')
 
 
-def start_compute(token, activity, image, url, progress=tqdm):
+def start_compute(session, activity, image, url, progress=tqdm):
     """
         Start the compute image from the given Activity.
 
@@ -210,13 +210,13 @@ def start_compute(token, activity, image, url, progress=tqdm):
         """
     data = {'activity_id': activity,
             'image_name': image,
-            'organization': ''}
+            'organization': session.org}
 
-    headers = {'Authorization': 'Bearer {}'.format(token),
+    headers = {'Authorization': 'Bearer {}'.format(session.token),
                'Content-Type': 'application/json'}
 
-    requests.post(url, data=json.dumps(data), headers=headers)
-
+    r = requests.post(url, data=json.dumps(data), headers=headers)
+    return r.status_code, r.raise_for_status()
 
 
 def remove_related(session, activity, related=[], progress=tqdm):
@@ -307,9 +307,9 @@ def remove_related_main(args):
 
 
 def start_compute_main(args):
-    token = args.token
-    activity = args.activity_id
+    session = args.session
+    activity = core.get_entity(session, args.activity_id)
     image = args.image
     url = args.url
 
-    start_compute(token, activity, image, url)
+    start_compute(session, activity, image, url)
