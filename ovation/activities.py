@@ -216,7 +216,8 @@ def start_compute(session, activity, image, url, progress=tqdm):
                'Content-Type': 'application/json'}
 
     r = requests.post(url, data=json.dumps(data), headers=headers)
-    return r.status_code, r.raise_for_status()
+    r.raise_for_status()
+    return r.status_code
 
 
 def remove_related(session, activity, related=[], progress=tqdm):
