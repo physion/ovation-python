@@ -208,7 +208,7 @@ def start_compute(session, activity, image, url, progress=tqdm):
         :param image: compute image
         :return:
         """
-    data = {'activity_id': activity,
+    data = {'activity_id': activity._id,
             'image_name': image,
             'organization': session.org}
 
