@@ -90,6 +90,7 @@ def main():
     activities_start_compute.add_argument('--activity_id', help='Activity UUID')
     activities_start_compute.add_argument('--image', help='The name of the image to compute')
     activities_start_compute.add_argument('--url', help='The url of hpc-manager')
+    activities_start_compute.add_argument('--env', help='The environment of hpc-manager')
     activities_start_compute.set_defaults(func=activities.start_compute_main)
 
     args = parser.parse_args()
@@ -97,7 +98,9 @@ def main():
     if args.user is None and args.token is None:
         args.user = input('Email: ')
 
-    s = session.connect(args.user, token=args.token, org=args.organization)
+    if args.env is not None:
+        s = session.connect(args.user, token=args.token, api=session.DEVELOPMENT_HOST, org=args.organization) if args.env == 'development'else session.connect(args.user, token=args.token, org=args.organization)
+
     args.session = s
 
     args.func(args)

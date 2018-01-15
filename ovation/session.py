@@ -16,6 +16,7 @@ from getpass import getpass
 
 DEFAULT_HOST = 'https://api.ovation.io'
 DEFAULT_LAB_HOST = 'https://lab-services.ovation.io'
+DEVELOPMENT_HOST = 'http://35.201.81.129'
 
 
 class DataDict(dict):
