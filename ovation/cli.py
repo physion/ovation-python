@@ -15,6 +15,7 @@ def main():
     parser.add_argument('-u', '--user', help='Ovation user email')
     parser.add_argument('-o', '--organization', help='Organization Id', default=0)
     parser.add_argument('-t', '--token', help='Ovation API token', default=None)
+    parser.add_argument('--development', help='Use development environment', default=False, action='store_true')
 
     subparsers = parser.add_subparsers(title='Available subcommands',
                                        description='Use `python -m ovation.cli <subcommand> -h` for additional help')
@@ -90,7 +91,6 @@ def main():
     activities_start_compute.add_argument('--activity_id', help='Activity UUID')
     activities_start_compute.add_argument('--image', help='The name of the image to compute')
     activities_start_compute.add_argument('--url', help='The url of hpc-manager')
-    activities_start_compute.add_argument('--env', help='The environment of hpc-manager')
     activities_start_compute.set_defaults(func=activities.start_compute_main)
 
     args = parser.parse_args()
@@ -98,13 +98,16 @@ def main():
     if args.user is None and args.token is None:
         args.user = input('Email: ')
 
-    if args.env is not None:
-        s = session.connect(args.user, token=args.token, api=session.DEVELOPMENT_HOST, org=args.organization) if args.env == 'development'else session.connect(args.user, token=args.token, org=args.organization)
+    if args.development:
+        api = session.DEVELOPMENT_HOST
+    else:
+        api = session.DEFAULT_HOST
 
-    args.session = s
+    args.session = session.connect(args.user, token=args.token, api=api, org=args.organization)
 
-    args.func(args)
+    return args.func(args)
 
 
 if __name__ == '__main__':
-    main()
+    result = main()
+    exit(result if result is not None else 0)
