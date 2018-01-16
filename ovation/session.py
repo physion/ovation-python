@@ -14,6 +14,7 @@ from getpass import getpass
 
 DEFAULT_HOST = 'https://api.ovation.io'
 DEFAULT_LAB_HOST = 'https://lab-services.ovation.io'
+DEVELOPMENT_HOST = 'https://api-dev.ovation.io'
 
 
 class DataDict(dict):
@@ -116,7 +117,7 @@ class Session(object):
     All responses are transformed via `simplify_response` to make interactive use more convenient.
     """
 
-    def __init__(self, token, api='https://api.ovation.io', prefix='/api/v1', retry=3, org=0):
+    def __init__(self, token, api=DEFAULT_HOST, prefix='/api/v1', retry=3, org=0):
         """
         Creates a new Session
         :param token: Ovation API token
