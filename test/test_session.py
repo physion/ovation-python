@@ -32,6 +32,15 @@ def should_add_prefix():
     path = '/some/path'
     assert_equal(s.make_url(path), urljoin(api_base, '/api/v1' + path))
 
+@istest
+def should_remove_double_slashes_in_url():
+    token = 'my-token'
+    api_base = 'https://my.server/'
+    s = session.Session(token, api=api_base)
+
+    path = '/some//path'
+    assert_equal(s.make_url(path), urljoin(api_base, ('/api/v1' + path).replace('//','/')))
+
 
 @istest
 def should_make_type_index_url():

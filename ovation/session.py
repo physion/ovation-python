@@ -9,8 +9,6 @@ import six
 import retrying
 import json
 
-from ovation.util import deprecated
-
 from six.moves.urllib_parse import urljoin, urlparse
 from getpass import getpass
 
@@ -174,7 +172,7 @@ class Session(object):
         :return: full URL, e.g. https://api.ovation.io/api/v1/projects/1
         """
         if not path.startswith(self.prefix):
-            path = os.path.normpath(self.prefix + path)
+            path = (self.prefix + path).replace('//', '/')
 
         return urljoin(self.api_base, path)
 
