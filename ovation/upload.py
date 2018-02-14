@@ -1,3 +1,4 @@
+import logging
 import mimetypes
 import threading
 import boto3
@@ -149,6 +150,7 @@ def upload_revision(session,
         upload_to_aws(aws, content_type, local_path, progress, chunk_size=chunk_size)
         return session.put(revision['links']['upload-complete'], entity=None)
     except Exception as err:
+        logging.error("Error during upload: {}".format(err))
         return session.put(revision['links']['upload-failed'], entity=None)
 
 
