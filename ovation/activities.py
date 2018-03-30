@@ -309,7 +309,7 @@ def remove_related_main(args):
 
 def start_compute_main(args):
     session = args.session
-    activity = core.get_entity(session, args.activity_id)
+    activity = core.get_entity(session, args.activity)
     image = args.image
     url = args.url
 
