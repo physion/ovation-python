@@ -20,7 +20,7 @@ def _resolve_links(session, project, links=[], progress=tqdm):
         if isinstance(link, six.string_types) and os.path.isfile(link):
             logging.debug("Uploading input %s", link)
             revision = upload.upload_file(session, project,
-                                          link)['revision']
+                                          link)
             resolved_links.append(revision)
         else:
             resolved_links.append(core.get_entity(session, link))
