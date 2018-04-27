@@ -25,7 +25,7 @@ with open(os.path.join('ovation', '__init__.py')) as fd:
 args = dict(name='ovation',
             version=version,
             description='Ovation Python API',
-            author='Physion LLC',
+            author='Ovation.io, Inc.',
             author_email='info@ovation.io',
             url='https://ovation.io',
             long_description=DESCRIPTION,
