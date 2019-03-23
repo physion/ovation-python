@@ -121,6 +121,7 @@ def upload_revision(session,
     """
     Upload a new `Revision` to `parent_file`. File is uploaded from `local_path` to
     the Ovation cloud, and the newly created `Revision` version is set.
+    :param chunk_size: function that returns desired multi-part upload chunk size given file path
     :param session: ovation.connection.Session
     :param parent_file: file entity dictionary or file ID string
     :param local_path: local path

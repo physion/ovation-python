@@ -76,3 +76,5 @@ example.m
 *.env
 dev.env
 codeship.aes
+
+.pytest_cache
