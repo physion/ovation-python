@@ -137,7 +137,8 @@ def should_set_multipart_chunk_size(boto_session, getsize):
     rev = {'_id': 1,
            'type': 'Revision',
            'attributes': {'url': sentinel.url},
-           'links': {'upload-complete': sentinel.upload_complete}}
+           'links': {'upload-complete': sentinel.upload_complete,
+                     'upload-failed': sentinel.upload_failed}}
 
     getsize.return_value = sentinel.file_size
 
@@ -157,7 +158,8 @@ def should_set_multipart_chunk_size(boto_session, getsize):
     file_obj.upload_file = Mock()
     file_obj.version_id = sentinel.version
 
-    _chunk_size = Mock(return_value=sentinel.chunk_size)
+    CHUNK_SIZE=100000
+    _chunk_size = Mock(return_value=CHUNK_SIZE)
 
     s.post = Mock(return_value={'entities': [rev],
                                 'aws': [{'aws': dict(access_key_id=sentinel.access_key,
@@ -173,7 +175,7 @@ def should_set_multipart_chunk_size(boto_session, getsize):
 
     # Assert
     call = file_obj.upload_file.call_args_list[0]
-    assert_equal(call[1]['Config'].multipart_chunksize, sentinel.chunk_size)
+    assert_equal(call[1]['Config'].multipart_chunksize, CHUNK_SIZE)
 
 
 @istest
