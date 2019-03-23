@@ -95,6 +95,10 @@ def main():
 
     args = parser.parse_args()
 
+    if not 'func' in args is None:
+        parser.print_help()
+        return 1
+
     if args.user is None and args.token is None:
         args.user = input('Email: ')
 
