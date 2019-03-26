@@ -5,6 +5,8 @@ import ovation.lab.upload as upload
 
 from tqdm import tqdm
 
+from ovation.lab.constants import WORKFLOW
+
 
 def create_activity(session, workflow_id, activity_label, activity=None,
                     resources=None, resource_groups=None,
@@ -28,7 +30,7 @@ def create_activity(session, workflow_id, activity_label, activity=None,
     if activity is None:
         activity = {}
 
-    if len(activity.keys()) > 0 and not 'custom_attributes' in activity:
+    if len(activity.keys()) > 0 and 'custom_attributes' not in activity:
         activity = {'custom_attributes': activity}
 
     workflow = session.get(session.path('workflows', workflow_id)).workflow
@@ -55,7 +57,7 @@ def get_activity(session, workflow, label):
 
 
 def get_workflow(session, workflow):
-    return session.get(session.path('workflow'), workflow)['workflow']
+    return session.get(session.path('workflow'), workflow)[WORKFLOW]
 
 
 def get_samples(session, workflow):

@@ -4,6 +4,7 @@ import ovation.download
 
 from tqdm import tqdm
 
+
 def download_resources(session,
                        workflow,
                        activity_label,
@@ -28,5 +29,3 @@ def download_resources(session,
 
     for r in resources:
         ovation.download.download_url(r.read_url, output=output, progress=progress)
-
-
