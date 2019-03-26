@@ -6,3 +6,4 @@ WORKFLOW = 'workflow'
 SAMPLE = 'sample'
 
 REPORTS = 'reports'
+WORKFLOW_SAMPLE_RESULTS = 'workflow_sample_results'
