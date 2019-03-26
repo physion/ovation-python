@@ -5,15 +5,16 @@ import ovation.upload as upload
 
 from tqdm import tqdm
 
+from ovation.lab.constants import RESOURCE_GROUP, RESOURCE
+
 
 def _create_resource_group(session, activity, name, parent=None):
-    body = {"resource_group": {
-        "name": name,
-        "activity_id": activity
-    }}
+    body = {"resource_group": {"name": name,
+                               "activity_id": activity
+                               }}
 
     if parent is not None:
-        body['resource_group']['parent_id'] = parent
+        body[RESOURCE_GROUP]['parent_id'] = parent
 
     return session.post(session.path('resource_groups'), data=body)
 
@@ -37,10 +38,10 @@ def upload_resource(session, entity_id, local_path, label=None, resource_group=N
     data = {'resource': {'entity_id': entity_id,
                          'path': file_name}}
     if label:
-        data['resource']['label'] = label
+        data[RESOURCE]['label'] = label
 
     if resource_group is not None:
-        data['resource']['resource_group_id'] = resource_group.id
+        data[RESOURCE]['resource_group_id'] = resource_group.id
 
     r = session.post(session.path('resources'), data=data)
     aws = r['aws']
