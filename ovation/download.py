@@ -9,7 +9,7 @@ import retrying
 import ovation.core as core
 import ovation.contents as contents
 
-from typing import Iterable, Any
+from typing import Iterable
 
 from ovation.session import Session
 
