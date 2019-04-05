@@ -2,8 +2,15 @@
 Connection wrapper for Ovation Lab API
 """
 
-from ovation.session import connect_lab, DEFAULT_LAB_HOST
+import ovation.session
 
 
-def connect(email, token=None, api=DEFAULT_LAB_HOST):
-    return connect_lab(email, token=token, api=api)
+def connect(email, token=None, api=ovation.session.DEFAULT_LAB_HOST):
+    """
+    Creates a new Session object with a connection to the Ovation API
+    :param email: Ovation account email
+    :param token: API token
+    :param api: API base URL
+    :return: ovation.session.Session
+    """
+    return ovation.session.connect(email, token=token, api=api, org=None)
