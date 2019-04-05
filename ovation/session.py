@@ -43,6 +43,7 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
 def connect_lab(email, token=None, api=DEFAULT_LAB_HOST):
     return connect(email, token=token, api=api, org=None)
 
+
 def connect(email, token=None, api=DEFAULT_HOST, org=0):
     """Creates a new Session.
     
@@ -147,6 +148,14 @@ class Session(object):
         self.session.auth = BearerAuth(token)
         self.session.headers = {'content-type': 'application/json',
                                 'accept': 'application/json'}
+
+    def with_prefix(self, new_prefix):
+        return Session(self.token,
+                       api=self.api_base,
+                       prefix=new_prefix,
+                       retry=self.retry,
+                       org=self.org)
+
 
     def json(self):
         return json.dumps({'token': self.token,
