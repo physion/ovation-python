@@ -1,5 +1,4 @@
 from unittest.mock import sentinel, Mock
-
 from nose.tools import istest, assert_equal
 
 import ovation.download as download

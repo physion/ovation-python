@@ -5,10 +5,11 @@ import requests
 import six
 import logging
 import retrying
-import json
 
 import ovation.core as core
 import ovation.contents as contents
+
+from typing import Iterable
 
 from ovation.session import Session
 
@@ -98,6 +99,18 @@ def download_url(url, output=None, progress=tqdm):
             for data in response.iter_content(chunk_size=DEFAULT_CHUNK_SIZE):
                 if data:
                     f.write(data)
+
+
+def download_urls(urls: Iterable[str],
+                  output: str = None,
+                  progress: tqdm = tqdm) -> None:
+    with Pool(processes=PROCESS_POOL_SIZE) as p:
+        for f in progress(p.map(lambda url: download_url(url, output=output, progress=progress),
+                                urls),
+                          desc='Downloading files',
+                          unit='file',
+                          total=len(urls)):
+            pass
 
 
 def _download_revision_path(session_json, revision_path, progress=tqdm):

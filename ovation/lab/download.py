@@ -1,14 +1,15 @@
-import six
-import os
+import ovation.session
 import ovation.download
-
 from tqdm import tqdm
+from typing import Dict
+
+from ovation.lab.constants import RESOURCES
 
 
-def download_resources(session,
-                       workflow,
-                       activity_label,
-                       resource_label, output=None, progress=tqdm):
+def download_activity_resources(session,
+                                workflow,
+                                activity_label,
+                                resource_label, output=None, progress=tqdm):
     """
     Download the Resources for a labeled activity. Resources with the given label are downloaded
     to the given output directory.
@@ -29,3 +30,5 @@ def download_resources(session,
 
     for r in resources:
         ovation.download.download_url(r.read_url, output=output, progress=progress)
+
+
