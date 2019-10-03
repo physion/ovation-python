@@ -24,4 +24,4 @@ allowed:
   - cc0-1.0
 
 python:
-  virtual_env_dir: "../.licensed"
+  virtual_env_dir: "/Users/barry/.conda/envs/ovation-python/"
