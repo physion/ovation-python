@@ -1,0 +1,9 @@
+---
+name: boto3
+version: 1.9.241
+type: pip
+summary: The AWS SDK for Python
+homepage: https://github.com/boto/boto3
+license: none
+licenses: []
+notices: []
