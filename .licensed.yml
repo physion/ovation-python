@@ -1,0 +1,27 @@
+# If not set, defaults to the directory name of `source_path`
+name: 'ovation-python'
+
+# Path is relative to the location of the configuration file and specifies
+# the root to expand all paths from
+# If not set, defaults to a git repository root
+# root: '.'
+
+# Path is relative to configuration root
+# If not set, defaults to '.licenses'
+# cache_path: '.licenses'
+
+# Path is relative to configuration root and specifies the working directory when enumerating dependencies
+# Optional for single app configuration, required when specifying multiple apps
+# Defaults to current directory when running `licensed`
+# source_path: '.'
+
+# Dependencies with these licenses are allowed by default.
+allowed:
+  - mit
+  - apache-2.0
+  - bsd-2-clause
+  - bsd-3-clause
+  - cc0-1.0
+
+python:
+  virtual_env_dir: "../.licensed"
