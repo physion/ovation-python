@@ -23,5 +23,12 @@ allowed:
   - bsd-3-clause
   - cc0-1.0
 
+reviewed:
+  pip:
+    - boto3
+    - python-dateutil
+    - requests
+    - tqdm
+
 python:
-  virtual_env_dir: "../.licensed"
+  virtual_env_dir: "/Users/barry/.conda/envs/ovation-python/"
