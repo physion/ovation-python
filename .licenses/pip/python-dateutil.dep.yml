@@ -4,7 +4,7 @@ version: 2.8.0
 type: pip
 summary: Extensions to the standard Python datetime module
 homepage: https://dateutil.readthedocs.io
-license: other
+license: apache-2.0
 licenses:
 - sources: LICENSE
   text: |-

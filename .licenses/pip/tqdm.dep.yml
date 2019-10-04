@@ -4,7 +4,7 @@ version: 4.36.1
 type: pip
 summary: Fast, Extensible Progress Meter
 homepage: https://github.com/tqdm/tqdm
-license: other
+license: mit
 licenses:
 - sources: LICENCE
   text: |
