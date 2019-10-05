@@ -8,12 +8,15 @@ import requests.exceptions
 import six
 import retrying
 import json
+import deprecation
 
 from six.moves.urllib_parse import urljoin, urlparse
 from getpass import getpass
 
+from .lab.constants import DEFAULT_LAB_HOST
+from . import __version__
+
 DEFAULT_HOST = 'https://api.ovation.io'
-DEFAULT_LAB_HOST = 'https://lab-services.ovation.io'
 DEVELOPMENT_HOST = 'https://api-dev.ovation.io'
 
 
@@ -40,6 +43,10 @@ def read_saved_token(email, url=DEFAULT_HOST, credentials_path=CREDENTIALS_PATH)
     return None
 
 
+@deprecation.deprecated(deprecated_in='1.26',
+                        removed_in='2.0',
+                        current_version=__version__,
+                        details="Use ovation.lab.session.connect")
 def connect_lab(email, token=None, api=DEFAULT_LAB_HOST):
     return connect(email, token=token, api=api, org=None)
 

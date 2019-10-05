@@ -5,7 +5,7 @@ Connection wrapper for Ovation Lab API
 import ovation.session
 
 
-def connect(email, token=None, api=ovation.session.DEFAULT_LAB_HOST):
+def connect(email, token=None, api=ovation.constants.DEFAULT_LAB_HOST):
     """
     Creates a new Session object with a connection to the Ovation API
     :param email: Ovation account email
