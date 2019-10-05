@@ -1,3 +1,9 @@
+# HOSTS
+LAB_PRODUCTION_HOST = 'https://lab-services.ovation.io'
+LAB_STAGING_HOST = 'https://lab-services-staging.ovation.io'
+LAB_SANDBOX_HOST = 'https://lab-services-sandbox.ovation.io'
+DEFAULT_LAB_HOST = LAB_PRODUCTION_HOST
+
 # Entities
 REQUISITION = 'requisition'
 RESOURCE_GROUP = 'resource_group'
